@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - RutaEscolar</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background-color: #2d3748;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-section {
+            padding: 1.25rem 1rem;
+            background-color: #1a202c;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background-color: #f59e0b;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .logo-text h1 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.125rem;
+        }
+
+        .logo-text p {
+            font-size: 0.7rem;
+            color: #a0aec0;
+            margin: 0;
+        }
+
+        .nav-menu {
+            padding: 0.5rem 0;
+            flex: 1;
+        }
+
+        .nav-item-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 1rem;
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .nav-item-custom:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .nav-item-custom.active {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #1a202c;
+            margin-top: auto;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f59e0b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            margin: 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 240px;
+            flex: 1;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        .header-section {
+            background-color: white;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-section h1 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-section p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Activity & Routes Cards */
+        .info-card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 0.4rem;
+            flex-shrink: 0;
+        }
+
+        .route-card {
+            background-color: #f8fafc;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: all 0.2s;
+        }
+
+        .route-card:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Optimization Banner */
+        .optimization-banner {
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .optimization-icon {
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.2;
+            font-size: 8rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -240px;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-section d-flex align-items-center gap-2">
+                <div class="logo-icon">
+                    <i class="bi bi-bus-front"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>RutaEscolar</h1>
+                    <p>Sistema de Gestión</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a class="nav-item-custom active" href="#">
+                    <i class="bi bi-grid"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="nav-item-custom" href="#">
+                    <i class="bi bi-people"></i>
+                    <span>Estudiantes</span>
+                </a>
+                <a class="nav-item-custom" href="#">
+                    <i class="bi bi-geo-alt"></i>
+                    <span>Rutas</span>
+                </a>
+                <a class="nav-item-custom" href="#">
+                    <i class="bi bi-map"></i>
+                    <span>Mapa Conductor</span>
+                </a>
+                <a class="nav-item-custom" href="#">
+                    <i class="bi bi-bell"></i>
+                    <span>Alertas</span>
+                </a>
+                <a class="nav-item-custom" href="#">
+                    <i class="bi bi-credit-card"></i>
+                    <span>Control Pagos</span>
+                </a>
+                <a class="nav-item-custom" href="#">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Tracking Tiempo Real</span>
+                </a>
+                <a class="nav-item-custom" href="#">
+                    <i class="bi bi-file-text"></i>
+                    <span>Reportes</span>
+                </a>
+                <a class="nav-item-custom" href="#">
+                    <i class="bi bi-receipt"></i>
+                    <span>Facturación</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <div class="user-info">
+                        <p class="user-name" id="userName">Administrador</p>
+                        <p class="user-role">Admin</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header-section">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1>Dashboard</h1>
+                        <p>Vista general del sistema de rutas escolares</p>
+                    </div>
+                    <a href="/logout" class="btn btn-danger">
+                        <i class="bi bi-box-arrow-right me-2"></i>
+                        Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-4">
+                <!-- Stats Grid -->
+                <div class="row g-3 mb-4">
+                    <!-- Estudiantes Activos -->
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon bg-primary">
+                                    <i class="bi bi-people text-white fs-4"></i>
+                                </div>
+                                <span class="badge bg-success">+12</span>
+                            </div>
+                            <div class="stat-number">342</div>
+                            <div class="stat-label">Estudiantes Activos</div>
+                        </div>
+                    </div>
+
+                    <!-- Rutas Activas -->
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon bg-success">
+                                    <i class="bi bi-geo-alt text-white fs-4"></i>
+                                </div>
+                                <span class="badge bg-success">+2</span>
+                            </div>
+                            <div class="stat-number">24</div>
+                            <div class="stat-label">Rutas Activas</div>
+                        </div>
+                    </div>
+
+                    <!-- Ingresos Mes -->
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon bg-warning">
+                                    <i class="bi bi-currency-dollar text-white fs-4"></i>
+                                </div>
+                                <span class="badge bg-success">+8%</span>
+                            </div>
+                            <div class="stat-number">$48,500</div>
+                            <div class="stat-label">Ingresos Mes</div>
+                        </div>
+                    </div>
+
+                    <!-- Alertas Pendientes -->
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon bg-danger">
+                                    <i class="bi bi-exclamation-triangle text-white fs-4"></i>
+                                </div>
+                                <span class="badge bg-success">-3</span>
+                            </div>
+                            <div class="stat-number">7</div>
+                            <div class="stat-label">Alertas Pendientes</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two Column Grid -->
+                <div class="row g-4 mb-4">
+                    <!-- Actividad Reciente -->
+                    <div class="col-12 col-lg-6">
+                        <div class="info-card p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h3 class="h5 fw-bold mb-0">Actividad Reciente</h3>
+                                <i class="bi bi-clock-history text-muted"></i>
+                            </div>
+                            <div class="d-flex flex-column gap-3">
+                                <div class="d-flex gap-3">
+                                    <div class="activity-dot bg-primary"></div>
+                                    <div class="flex-fill">
+                                        <p class="mb-1 small fw-medium">Ruta 5 - Inicio de recorrido</p>
+                                        <p class="mb-0 text-muted" style="font-size: 0.75rem;">08:15 AM</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <div class="activity-dot bg-success"></div>
+                                    <div class="flex-fill">
+                                        <p class="mb-1 small fw-medium">Estudiante María López recogida</p>
+                                        <p class="mb-0 text-muted" style="font-size: 0.75rem;">08:10 AM</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <div class="activity-dot bg-success"></div>
+                                    <div class="flex-fill">
+                                        <p class="mb-1 small fw-medium">Pago confirmado - Familia Rodríguez</p>
+                                        <p class="mb-0 text-muted" style="font-size: 0.75rem;">08:05 AM</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <div class="activity-dot bg-warning"></div>
+                                    <div class="flex-fill">
+                                        <p class="mb-1 small fw-medium">Ruta 3 - Retraso de 10 minutos</p>
+                                        <p class="mb-0 text-muted" style="font-size: 0.75rem;">07:55 AM</p>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-3">
+                                    <div class="activity-dot bg-primary"></div>
+                                    <div class="flex-fill">
+                                        <p class="mb-1 small fw-medium">Conductor Juan Pérez conectado</p>
+                                        <p class="mb-0 text-muted" style="font-size: 0.75rem;">07:45 AM</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Próximas Rutas -->
+                    <div class="col-12 col-lg-6">
+                        <div class="info-card p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h3 class="h5 fw-bold mb-0">Próximas Rutas</h3>
+                                <i class="bi bi-chevron-right text-muted"></i>
+                            </div>
+                            <div class="d-flex flex-column gap-3">
+                                <div class="route-card">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h4 class="h6 fw-semibold mb-0">Ruta 1 - Centro</h4>
+                                        <span class="fw-bold text-warning">14:30</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span>18 estudiantes</span>
+                                        <span style="font-size: 0.75rem;">Carlos Méndez</span>
+                                    </div>
+                                </div>
+                                <div class="route-card">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h4 class="h6 fw-semibold mb-0">Ruta 3 - Norte</h4>
+                                        <span class="fw-bold text-warning">14:45</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span>22 estudiantes</span>
+                                        <span style="font-size: 0.75rem;">Ana García</span>
+                                    </div>
+                                </div>
+                                <div class="route-card">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h4 class="h6 fw-semibold mb-0">Ruta 7 - Sur</h4>
+                                        <span class="fw-bold text-warning">15:00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span>15 estudiantes</span>
+                                        <span style="font-size: 0.75rem;">Roberto Silva</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optimización Banner -->
+                <div class="optimization-banner">
+                    <div class="position-relative" style="z-index: 1;">
+                        <h3 class="h4 fw-bold mb-3">Optimización de Rutas</h3>
+                        <p class="mb-4 opacity-75">
+                            El sistema puede optimizar automáticamente las rutas para ahorrar tiempo y combustible
+                        </p>
+                        <button class="btn btn-light text-warning fw-semibold px-4 shadow">
+                            Optimizar Ahora
+                        </button>
+                    </div>
+                    <i class="bi bi-graph-up-arrow optimization-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Function to set current user
+        function setCurrentUser(name, role = 'Admin') {
+            const userNameElement = document.getElementById('userName');
+            if (userNameElement) {
+                userNameElement.textContent = name;
+            }
+            
+            // Guardar en localStorage para persistencia
+            localStorage.setItem('currentUser', JSON.stringify({ name, role }));
+        }
+
+        // Function to load user from localStorage
+        function loadCurrentUser() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                const userNameElement = document.getElementById('userName');
+                if (userNameElement) {
+                    userNameElement.textContent = user.name;
+                }
+            }
+        }
+
+        // Initialize
+        loadCurrentUser();
+
+        // Ejemplo de cómo cambiar el usuario (puedes llamar esta función cuando un usuario inicie sesión)
+        // setCurrentUser('Juan Pérez', 'Supervisor');
+        // setCurrentUser('María González', 'Operador');
+    </script>
+</body>
+</html>
