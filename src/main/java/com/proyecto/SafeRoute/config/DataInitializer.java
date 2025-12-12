@@ -7,52 +7,51 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.util.Optional;
-
+/**
+ * Inicializador de datos de la base de datos
+ * Crea usuarios por defecto al iniciar la aplicación SOLO si no existen
+ */
 @Configuration
 public class DataInitializer {
 
     @Bean
-    public CommandLineRunner initDatabase(UsuarioRepository repo, BCryptPasswordEncoder passwordEncoder) {
+    public CommandLineRunner initDatabase(UsuarioRepository repo) {
         return args -> {
-            // Usuario ADMIN
-            Optional<Usuario> adminOpt = repo.findByUserName("admin");
-            if (adminOpt.isEmpty()) {
-                Usuario admin = new Usuario();
-                admin.setUserName("admin");
-                admin.setPassword(passwordEncoder.encode("123"));
-                admin.setRol("ADMIN");
-                repo.save(admin);
-                System.out.println("✅ Usuario admin creado con éxito");
-            } else {
-                System.out.println("ℹ️ Usuario admin ya existe");
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+            
+            // Lista de usuarios esperados (solo crea si NO existen)
+            String[][] usuariosEsperados = {
+                {"admin", "ADMIN", "Administrador Sistema", "admin@saferoute.com", "+57-300-0000001"},
+                {"padre1", "PADRE", "Juan Rodríguez", "juan.rodriguez@email.com", "+57-300-5555555"},
+                {"conductor1", "CONDUCTOR", "Carlos Méndez", "carlos.mendez@saferoute.com", "+57-300-1111111"}
+            };
+            
+            // Crear usuarios solo si no existen
+            for (String[] usuario : usuariosEsperados) {
+                if (repo.findByUserName(usuario[0]).isEmpty()) {
+                    Usuario nuevoUsuario = new Usuario();
+                    nuevoUsuario.setUserName(usuario[0]);
+                    nuevoUsuario.setPassword(encoder.encode("123"));  // Siempre "123"
+                    nuevoUsuario.setRol(usuario[1]);
+                    nuevoUsuario.setNombre(usuario[2]);
+                    nuevoUsuario.setEmail(usuario[3]);
+                    nuevoUsuario.setTelefono(usuario[4]);
+                    nuevoUsuario.setActivo(true);
+                    repo.save(nuevoUsuario);
+                    System.out.println("✅ Usuario " + usuario[0] + " (" + usuario[1] + ") creado exitosamente");
+                } else {
+                    System.out.println("ℹ️ Usuario " + usuario[0] + " ya existe en BD");
+                }
             }
-
-            // Usuario PARENT (Padre)
-            Optional<Usuario> padreOpt = repo.findByUserName("padre1");
-            if (padreOpt.isEmpty()) {
-                Usuario padre = new Usuario();
-                padre.setUserName("padre1");
-                padre.setPassword(passwordEncoder.encode("123"));
-                padre.setRol("PARENT");
-                repo.save(padre);
-                System.out.println("✅ Usuario padre1 creado con éxito");
-            } else {
-                System.out.println("ℹ️ Usuario padre1 ya existe");
-            }
-
-            // Usuario DRIVER (Conductor)
-            Optional<Usuario> conductorOpt = repo.findByUserName("conductor1");
-            if (conductorOpt.isEmpty()) {
-                Usuario conductor = new Usuario();
-                conductor.setUserName("conductor1");
-                conductor.setPassword(passwordEncoder.encode("123"));
-                conductor.setRol("DRIVER");
-                repo.save(conductor);
-                System.out.println("✅ Usuario conductor1 creado con éxito");
-            } else {
-                System.out.println("ℹ️ Usuario conductor1 ya existe");
-            }
+            
+            // MOSTRAR TODOS los usuarios de la base de datos (SQL + DataInitializer)
+            System.out.println("\n🚀 Inicialización completada - USUARIOS EN BASE DE DATOS:");
+            System.out.println("═══════════════════════════════════════════════");
+            repo.findAll().forEach(usuario -> 
+                System.out.println("   • " + usuario.getUserName() + " / 123 (Rol: " + 
+                                 usuario.getRol() + ") - " + usuario.getNombre())
+            );
+            System.out.println("═══════════════════════════════════════════════\n");
         };
     }
 }

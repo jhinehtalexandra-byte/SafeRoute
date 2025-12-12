@@ -2,72 +2,90 @@ package com.proyecto.SafeRoute.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Configuración de seguridad para Spring Security
+ * Define rutas públicas, privadas y permisos por rol
+ */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
+    /**
+     * Configuración principal de seguridad HTTP
+     */
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                // Rutas públicas (sin autenticación)
+                .requestMatchers("/", "/home", "/login", "/registrarse", "/error", "/logout").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/static/**").permitAll()
+                
+                // Rutas para ADMIN
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/usuarios/**").hasRole("ADMIN")
+                .requestMatchers("/reportes/**").hasRole("ADMIN")
+                .requestMatchers("/estudiantes/**").hasRole("ADMIN")
+                
+                // Rutas para PADRE
+                .requestMatchers("/padre/**").hasRole("PADRE")
+                
+                // Rutas para CONDUCTOR
+                .requestMatchers("/conductor/**").hasRole("CONDUCTOR")
+                .requestMatchers("/mapa/**").hasRole("CONDUCTOR")
+                
+                // Rutas compartidas (ADMIN y PADRE)
+                .requestMatchers("/pagos/**").hasAnyRole("PADRE", "ADMIN")
+                
+                // Rutas compartidas (requieren autenticación - todos los roles)
+                .requestMatchers("/perfil/**").authenticated()
+                .requestMatchers("/dashboard").authenticated()
+                
+                // Todas las demás rutas requieren autenticación
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .defaultSuccessUrl("/dashboard", true)
+                .failureUrl("/login?error=true")
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout=true")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/error")
+            )
+            .csrf(csrf -> csrf.disable()); // Deshabilitado para desarrollo
+
+        return http.build();
+    }
+
+    /**
+     * Encoder para encriptar contraseñas con BCrypt
+     */
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Manager de autenticación
+     */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                // Páginas públicas (sin autenticación)
-                .requestMatchers("/", "/home", "/login", "/css/**", "/js/**", "/img/**", "/images/**").permitAll()
-                .requestMatchers("/h2-console/**").permitAll() // Si usas H2
-                
-                // Dashboard solo para ADMIN
-                .requestMatchers("/dashboard", "/dashboard/**").hasRole("ADMIN")
-                .requestMatchers("/Users", "/Users/**").hasRole("ADMIN")
-                .requestMatchers("/estudiantes", "/estudiantes/**").hasRole("ADMIN")
-                .requestMatchers("/rutas", "/rutas/**").hasRole("ADMIN")
-                .requestMatchers("/alertas", "/alertas/**").hasRole("ADMIN")
-                .requestMatchers("/control-pagos", "/control-pagos/**").hasRole("ADMIN")
-                .requestMatchers("/tracking", "/tracking/**").hasRole("ADMIN")
-                .requestMatchers("/reportes", "/reportes/**").hasRole("ADMIN")
-                .requestMatchers("/facturacion", "/facturacion/**").hasRole("ADMIN")
-                .requestMatchers("/form", "/form/**").hasRole("ADMIN")
-                
-                // Páginas para DRIVER
-                .requestMatchers("/DriverMap", "/DriverMap/**").hasRole("DRIVER")
-                
-                // Páginas para PARENT
-                .requestMatchers("/Payments", "/Payments/**").hasRole("PARENT")
-                
-                // Perfil accesible para todos los usuarios autenticados
-                .requestMatchers("/Profile", "/Profile/**").authenticated()
-                
-                // Cualquier otra petición requiere autenticación
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .failureUrl("/login?error=true")
-                .defaultSuccessUrl("/auth-success", false)  // Ir a un controlador que redirige según rol
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/home?logout")
-                .permitAll()
-            )
-            .exceptionHandling(exception -> exception
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    response.sendRedirect("/login?denied");
-                })
-            )
-            .csrf(csrf -> csrf.disable());
-
-        return http.build();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 }

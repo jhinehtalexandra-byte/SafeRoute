@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - RutaEscolar</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f1f5f9;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar - MISMO ESTILO QUE LOS DASHBOARDS */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-section {
+            padding: 1.5rem 1.25rem;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #f59e0b;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .logo-text h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.125rem;
+        }
+
+        .logo-text p {
+            font-size: 0.7rem;
+            color: #cbd5e1;
+            margin: 0;
+        }
+
+        .nav-menu {
+            padding: 1rem 0;
+        }
+
+        .nav-item-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 0.9rem;
+            position: relative;
+        }
+
+        .nav-item-custom:hover {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: white;
+            padding-left: 1.5rem;
+        }
+
+        .nav-item-custom.active {
+            background-color: #f59e0b;
+            color: white;
+            font-weight: 600;
+        }
+
+        .nav-item-custom.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: white;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(0, 0, 0, 0.2);
+            margin-top: auto;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f59e0b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            margin: 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            min-height: 100vh;
+            background-color: #f1f5f9;
+        }
+
+        .header-section {
+            background: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-section h1 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-section p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            border: 1px solid #e5e7eb;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Filter Card */
+        .filter-card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .filter-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 1.25rem;
+            border-radius: 0.75rem 0.75rem 0 0;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 50rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                margin-left: -260px;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-section d-flex align-items-center gap-2">
+                <div class="logo-icon">
+                    <i class="bi bi-bus-front"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>RutaEscolar</h1>
+                    <p>Panel Administrador</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a class="nav-item-custom" th:href="@{/admin/dashboard}">
+                    <i class="bi bi-grid"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/admin/conductor/dashboard}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard Conductor</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/admin/padre/dashboard}">
+                    <i class="bi bi-house-door"></i>
+                    <span>Dashboard Padre</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/usuarios}">
+                    <i class="bi bi-people"></i>
+                    <span>Gestión Usuarios</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/pagos}">
+                    <i class="bi bi-credit-card"></i>
+                    <span>Gestión Pagos</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/perfil}">
+                    <i class="bi bi-person"></i>
+                    <span>Mi Perfil</span>
+                </a>
+                <a class="nav-item-custom active" th:href="@{/reportes}">
+                    <i class="bi bi-file-text"></i>
+                    <span>Reportes</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/estudiantes}">
+                    <i class="bi bi-backpack"></i>
+                    <span>Gestión Estudiantes</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <div class="flex-fill">
+                        <p class="user-name" th:text="${usuario?.nombre} ?: 'Administrador'">Administrador</p>
+                        <p class="user-role">ADMIN</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header-section">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1>Reportes y Analíticas</h1>
+                        <p>Sistema de consultas multicriterio y generación de reportes</p>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="text-muted small me-3">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            <span th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy')}"></span>
+                        </span>
+                        
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-box-arrow-right me-2"></i>
+                                Cerrar Sesión
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-4">
+                <!-- Stats Grid -->
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <p class="text-muted small mb-1">Total de Viajes</p>
+                                    <h2 class="fw-bold mb-0" th:text="${totalViajes} ?: '1,248'">1,248</h2>
+                                </div>
+                                <i class="bi bi-graph-up-arrow text-success fs-3"></i>
+                            </div>
+                            <p class="small text-success fw-semibold mb-0">
+                                <i class="bi bi-arrow-up me-1"></i>+8% vs mes anterior
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <p class="text-muted small mb-1">Puntualidad Promedio</p>
+                                    <h2 class="fw-bold mb-0" th:text="${promedioePuntualidad} ?: '90%'">90%</h2>
+                                </div>
+                                <i class="bi bi-clock-history text-primary fs-3"></i>
+                            </div>
+                            <p class="small text-success fw-semibold mb-0">
+                                <i class="bi bi-arrow-up me-1"></i>+3% vs mes anterior
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <p class="text-muted small mb-1">Estudiantes Transportados</p>
+                                    <h2 class="fw-bold mb-0" th:text="${totalEstudiantes} ?: '342'">342</h2>
+                                </div>
+                                <i class="bi bi-people text-warning fs-3"></i>
+                            </div>
+                            <p class="small text-success fw-semibold mb-0">
+                                <i class="bi bi-arrow-up me-1"></i>+12 vs mes anterior
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <p class="text-muted small mb-1">Distancia Recorrida</p>
+                                    <h2 class="fw-bold mb-0" th:text="${distanciaTotal} ?: '12,450 km'">12,450 km</h2>
+                                </div>
+                                <i class="bi bi-signpost text-info fs-3"></i>
+                            </div>
+                            <p class="small text-success fw-semibold mb-0">
+                                <i class="bi bi-arrow-up me-1"></i>+5% vs mes anterior
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters Card -->
+                <div class="filter-card mb-4">
+                    <div class="filter-header">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-funnel me-2"></i>
+                            Filtros de Búsqueda Multicriterio
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="get" th:action="@{/reportes}">
+                            <div class="row g-3">
+                                <!-- Filtro por Ruta -->
+                                <div class="col-md-3">
+                                    <label for="rutaId" class="form-label fw-semibold">
+                                        <i class="bi bi-geo-alt text-primary me-1"></i>
+                                        Ruta
+                                    </label>
+                                    <select class="form-select" id="rutaId" name="rutaId">
+                                        <option value="">Todas las Rutas</option>
+                                        <option th:each="ruta : ${rutas}" 
+                                                th:value="${ruta.id}" 
+                                                th:text="${ruta.nombre}"
+                                                th:selected="${rutaId == ruta.id}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- Filtro por Estado -->
+                                <div class="col-md-3">
+                                    <label for="estado" class="form-label fw-semibold">
+                                        <i class="bi bi-check-circle text-success me-1"></i>
+                                        Estado
+                                    </label>
+                                    <select class="form-select" id="estado" name="estado">
+                                        <option value="">Todos los Estados</option>
+                                        <option value="A_TIEMPO" th:selected="${estado == 'A_TIEMPO'}">A Tiempo</option>
+                                        <option value="RETRASADO" th:selected="${estado == 'RETRASADO'}">Retrasado</option>
+                                        <option value="COMPLETADO" th:selected="${estado == 'COMPLETADO'}">Completado</option>
+                                        <option value="CANCELADO" th:selected="${estado == 'CANCELADO'}">Cancelado</option>
+                                    </select>
+                                </div>
+
+                                <!-- Filtro Fecha Desde -->
+                                <div class="col-md-3">
+                                    <label for="fechaDesde" class="form-label fw-semibold">
+                                        <i class="bi bi-calendar-check text-info me-1"></i>
+                                        Fecha Desde
+                                    </label>
+                                    <input type="date" class="form-control" id="fechaDesde" name="fechaDesde" th:value="${fechaDesde}">
+                                </div>
+
+                                <!-- Filtro Fecha Hasta -->
+                                <div class="col-md-3">
+                                    <label for="fechaHasta" class="form-label fw-semibold">
+                                        <i class="bi bi-calendar-x text-danger me-1"></i>
+                                        Fecha Hasta
+                                    </label>
+                                    <input type="date" class="form-control" id="fechaHasta" name="fechaHasta" th:value="${fechaHasta}">
+                                </div>
+
+                                <!-- Filtro por Conductor -->
+                                <div class="col-md-3">
+                                    <label for="conductorId" class="form-label fw-semibold">
+                                        <i class="bi bi-person-badge text-warning me-1"></i>
+                                        Conductor
+                                    </label>
+                                    <select class="form-select" id="conductorId" name="conductorId">
+                                        <option value="">Todos los Conductores</option>
+                                        <option th:each="conductor : ${conductores}" 
+                                                th:value="${conductor.id}" 
+                                                th:text="${conductor.nombre}"
+                                                th:selected="${conductorId == conductor.id}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- Filtro por Tipo de Reporte -->
+                                <div class="col-md-3">
+                                    <label for="tipoReporte" class="form-label fw-semibold">
+                                        <i class="bi bi-file-earmark-text text-secondary me-1"></i>
+                                        Tipo de Reporte
+                                    </label>
+                                    <select class="form-select" id="tipoReporte" name="tipoReporte">
+                                        <option value="PUNTUALIDAD" th:selected="${tipoReporte == 'PUNTUALIDAD'}">Puntualidad</option>
+                                        <option value="VIAJES" th:selected="${tipoReporte == 'VIAJES'}">Historial de Viajes</option>
+                                        <option value="CONDUCTORES" th:selected="${tipoReporte == 'CONDUCTORES'}">Desempeño por Conductor</option>
+                                        <option value="PAGOS" th:selected="${tipoReporte == 'PAGOS'}">Pagos y Facturación</option>
+                                    </select>
+                                </div>
+
+                                <!-- Botones -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold d-block">
+                                        <i class="bi bi-gear text-muted me-1"></i>
+                                        Acciones
+                                    </label>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary flex-fill">
+                                            <i class="bi bi-search me-2"></i>
+                                            Buscar
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" onclick="limpiarFiltros()">
+                                            <i class="bi bi-arrow-clockwise me-2"></i>
+                                            Limpiar
+                                        </button>
+                                        <a th:href="@{/reportes/pdf(rutaId=${rutaId}, estado=${estado}, fechaDesde=${fechaDesde}, fechaHasta=${fechaHasta}, conductorId=${conductorId}, tipoReporte=${tipoReporte})}" 
+                                           class="btn btn-danger">
+                                            <i class="bi bi-file-pdf me-2"></i>
+                                            PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Results Table -->
+                <div class="table-container">
+                    <div class="p-4 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">
+                                <i class="bi bi-calendar3 text-warning me-2"></i>
+                                Resultados del Reporte
+                            </h5>
+                            <span class="badge bg-primary" th:text="'Total: ' + ${reportes?.size()} + ' registros'">Total: 0 registros</span>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="fw-semibold px-4 py-3">Fecha</th>
+                                    <th class="fw-semibold px-4 py-3">Ruta</th>
+                                    <th class="fw-semibold px-4 py-3">Conductor</th>
+                                    <th class="fw-semibold px-4 py-3">Hora Inicio</th>
+                                    <th class="fw-semibold px-4 py-3">Hora Fin</th>
+                                    <th class="fw-semibold px-4 py-3">Estudiantes</th>
+                                    <th class="fw-semibold px-4 py-3">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${reportes == null or reportes.isEmpty()}">
+                                    <td colspan="7" class="text-center text-muted py-5">
+                                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                        No hay datos para mostrar. Ajusta los filtros y busca nuevamente.
+                                    </td>
+                                </tr>
+                                <tr th:each="reporte : ${reportes}">
+                                    <td class="fw-medium px-4 py-3" th:text="${#dates.format(reporte.fecha, 'dd/MM/yyyy')}">2025-01-14</td>
+                                    <td class="px-4 py-3" th:text="${reporte.rutaNombre}">Ruta 1 - Centro</td>
+                                    <td class="text-muted px-4 py-3" th:text="${reporte.conductorNombre}">Carlos Méndez</td>
+                                    <td class="text-muted px-4 py-3" th:text="${reporte.horaInicio}">07:00</td>
+                                    <td class="text-muted px-4 py-3" th:text="${reporte.horaFin}">07:42</td>
+                                    <td class="text-muted px-4 py-3" th:text="${reporte.cantidadEstudiantes}">18</td>
+                                    <td class="px-4 py-3">
+                                        <span class="status-badge" 
+                                              th:classappend="${reporte.estado == 'A_TIEMPO'} ? 'bg-success bg-opacity-10 text-success' : 
+                                                              (${reporte.estado == 'RETRASADO'} ? 'bg-warning bg-opacity-10 text-warning' : 
+                                                              'bg-secondary bg-opacity-10 text-secondary')"
+                                              th:text="${reporte.estadoTexto}">
+                                            <i class="bi bi-check-circle me-1"></i>A tiempo
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function limpiarFiltros() {
+            document.getElementById('rutaId').value = '';
+            document.getElementById('estado').value = '';
+            document.getElementById('fechaDesde').value = '';
+            document.getElementById('fechaHasta').value = '';
+            document.getElementById('conductorId').value = '';
+            document.getElementById('tipoReporte').value = 'PUNTUALIDAD';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - SafeRoute</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            overflow-x: hidden;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 240px;
+            background-color: #2d3748;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #1a202c;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background-color: #f59e0b;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .logo-text h1 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .logo-text p {
+            font-size: 0.7rem;
+            color: #a0aec0;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .nav-menu {
+            padding: 0.5rem 0;
+            flex: 1;
+            list-style: none;
+        }
+
+        .nav-item-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 1rem;
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .nav-item-custom:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .nav-item-custom.active {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        .nav-item-custom i {
+            width: 1rem;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #1a202c;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f59e0b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            margin: 0;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: 240px;
+            flex: 1;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        .header-section {
+            background-color: white;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-section h1 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-section p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 0.65rem 1.25rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary-custom {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #d97706;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-secondary-custom {
+            background-color: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .btn-secondary-custom:hover {
+            background-color: #cbd5e0;
+            color: #2d3748;
+            text-decoration: none;
+        }
+
+        /* CONTENT */
+        .content {
+            padding: 2rem;
+        }
+
+        /* TABLA */
+        .table-container {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead {
+            background-color: #f3f4f6;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table thead th {
+            color: #374151;
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid #e5e7eb;
+            transition: background-color 0.2s;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            color: #4b5563;
+            font-size: 0.95rem;
+            vertical-align: middle;
+        }
+
+        .id-badge {
+            background-color: #edf2f7;
+            color: #2d3748;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 0.35rem 0.85rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .role-admin {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .role-parent {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .role-driver {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .role-coordinator {
+            background-color: #e9d5ff;
+            color: #7c3aed;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-inactive {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-table {
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.4rem;
+            border: none;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            text-decoration: none;
+        }
+
+        .btn-edit {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background-color: #2563eb;
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #dc2626;
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-view {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background-color: #059669;
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-reset {
+            background-color: #8b5cf6;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background-color: #7c3aed;
+            text-decoration: none;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+
+        /* Filters */
+        .filters-container {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+        }
+
+        .search-input-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            outline: none;
+            font-size: 0.875rem;
+        }
+
+        .search-input:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+
+        /* Modal Styles */
+        .modal-header-custom {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        .modal-header-custom .btn-close {
+            filter: invert(1);
+        }
+
+        .form-label-custom {
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .form-control-custom:focus, .form-select-custom:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            max-width: 400px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -240px;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .actions-cell {
+                flex-direction: column;
+            }
+            
+            .btn-table {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-logo d-flex align-items-center gap-2">
+            <div class="logo-icon">
+                <i class="bi bi-bus-front"></i>
+            </div>
+            <div class="logo-text">
+                <h1>SafeRoute</h1>
+                <p>Sistema de Gestión</p>
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+            <a class="nav-item-custom" th:href="@{/dashboard}">
+                <i class="bi bi-grid"></i>
+                <span>Dashboard</span>
+            </a>
+            <a class="nav-item-custom" th:href="@{/students}">
+                <i class="bi bi-people"></i>
+                <span>Estudiantes</span>
+            </a>
+            <a class="nav-item-custom" th:href="@{/routes}">
+                <i class="bi bi-geo-alt"></i>
+                <span>Rutas</span>
+            </a>
+            <a class="nav-item-custom" th:href="@{/driver-map}">
+                <i class="bi bi-map"></i>
+                <span>Mapa Conductor</span>
+            </a>
+            <a class="nav-item-custom" th:href="@{/alerts}">
+                <i class="bi bi-bell"></i>
+                <span>Alertas</span>
+            </a>
+            <a class="nav-item-custom" th:href="@{/payments}">
+                <i class="bi bi-credit-card"></i>
+                <span>Control Pagos</span>
+            </a>
+            <a class="nav-item-custom" th:href="@{/tracking}">
+                <i class="bi bi-clock-history"></i>
+                <span>Tracking Tiempo Real</span>
+            </a>
+            <a class="nav-item-custom" th:href="@{/reports}">
+                <i class="bi bi-file-text"></i>
+                <span>Reportes</span>
+            </a>
+            <a class="nav-item-custom" th:href="@{/billing}">
+                <i class="bi bi-receipt"></i>
+                <span>Facturación</span>
+            </a>
+            <a class="nav-item-custom active" th:href="@{/users}" sec:authorize="hasRole('ADMIN')">
+                <i class="bi bi-person-check"></i>
+                <span>Usuarios</span>
+            </a>
+            <a class="nav-item-custom" th:href="@{/profile}">
+                <i class="bi bi-person"></i>
+                <span>Mi Perfil</span>
+            </a>
+            <!-- Logout Form -->
+            <form th:action="@{/logout}" method="post" class="nav-item-custom" style="border: none; background: none;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" style="background: none; border: none; color: inherit; width: 100%; text-align: left;">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </form>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <div class="user-info">
+                    <!-- Mostrar usuario autenticado -->
+                    <p class="user-name" th:text="${#authentication.name} ?: 'Usuario'">Administrador</p>
+                    <p class="user-role" th:text="${#authentication.authorities} ? 'Admin' : 'Usuario'">Rol</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- HEADER -->
+        <div class="header-section">
+            <h1>
+                <i class="bi bi-person-check" style="color: #f59e0b; margin-right: 0.5rem;"></i>
+                Gestión de Usuarios
+            </h1>
+            <p>Administra los usuarios del sistema</p>
+
+            <div class="header-actions">
+                <button class="btn-action btn-primary-custom" onclick="openNewUserModal()">
+                    <i class="bi bi-plus-lg"></i>
+                    Nuevo Usuario
+                </button>
+                <a th:href="@{/users/export}" class="btn-action btn-secondary-custom">
+                    <i class="bi bi-download"></i>
+                    Exportar Usuarios
+                </a>
+            </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content">
+            <!-- Filters -->
+            <div class="filters-container">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="search-input-wrapper">
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="search-input form-control" 
+                                   placeholder="Buscar usuario por nombre, email o rol..."
+                                   id="searchInput"
+                                   th:value="${searchTerm}"
+                                   oninput="filterUsers()">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="roleFilter" onchange="filterUsers()">
+                            <option value="">Todos los roles</option>
+                            <option value="ADMIN" th:selected="${roleFilter == 'ADMIN'}">Administrador</option>
+                            <option value="PARENT" th:selected="${roleFilter == 'PARENT'}">Padre/Tutor</option>
+                            <option value="DRIVER" th:selected="${roleFilter == 'DRIVER'}">Conductor</option>
+                            <option value="COORDINATOR" th:selected="${roleFilter == 'COORDINATOR'}">Coordinador</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="statusFilter" onchange="filterUsers()">
+                            <option value="">Todos los estados</option>
+                            <option value="ACTIVE" th:selected="${statusFilter == 'ACTIVE'}">Activo</option>
+                            <option value="INACTIVE" th:selected="${statusFilter == 'INACTIVE'}">Inactivo</option>
+                            <option value="PENDING" th:selected="${statusFilter == 'PENDING'}">Pendiente</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2 text-muted">Total Usuarios</h6>
+                                    <h2 class="card-title mb-0" th:text="${totalUsers ?: 0}">0</h2>
+                                </div>
+                                <i class="bi bi-people-fill fs-3 text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2 text-muted">Administradores</h6>
+                                    <h2 class="card-title mb-0" th:text="${adminCount ?: 0}">0</h2>
+                                </div>
+                                <i class="bi bi-shield-check fs-3 text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2 text-muted">Conductores</h6>
+                                    <h2 class="card-title mb-0" th:text="${driverCount ?: 0}">0</h2>
+                                </div>
+                                <i class="bi bi-person-badge fs-3 text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-subtitle mb-2 text-muted">Padres/Tutores</h6>
+                                    <h2 class="card-title mb-0" th:text="${parentCount ?: 0}">0</h2>
+                                </div>
+                                <i class="bi bi-people fs-3 text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA -->
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuario</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Último Acceso</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Datos dinámicos desde el controlador -->
+                            <tr th:each="user : ${users}" th:data-user-id="${user.id}">
+                                <td>
+                                    <span class="id-badge" th:text="${user.id}">ID</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="user-avatar-small" style="width: 32px; height: 32px; background-color: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                                            <span th:text="${#strings.substring(user.firstName,0,1) + #strings.substring(user.lastName,0,1)}">??</span>
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium" th:text="${user.firstName + ' ' + user.lastName}">Nombre Usuario</div>
+                                            <small class="text-muted" th:text="${user.username}">username</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${user.email}">email@ejemplo.com</td>
+                                <td>
+                                    <span th:classappend="${user.role == 'ADMIN'} ? 'role-badge role-admin' :
+                                                            ${user.role == 'PARENT'} ? 'role-badge role-parent' :
+                                                            ${user.role == 'DRIVER'} ? 'role-badge role-driver' : 
+                                                            'role-badge role-coordinator'"
+                                          th:text="${user.role == 'ADMIN'} ? 'Administrador' :
+                                                  ${user.role == 'PARENT'} ? 'Padre/Tutor' :
+                                                  ${user.role == 'DRIVER'} ? 'Conductor' : 'Coordinador'">
+                                        Rol
+                                    </span>
+                                </td>
+                                <td>
+                                    <span th:classappend="${user.enabled} ? 'status-badge status-active' : 'status-badge status-inactive'"
+                                          th:text="${user.enabled} ? 'Activo' : 'Inactivo'">
+                                        Estado
+                                    </span>
+                                </td>
+                                <td>
+                                    <small th:text="${#dates.format(user.lastLogin, 'dd/MM/yyyy HH:mm')}">--/--/---- --:--</small>
+                                </td>
+                                <td>
+                                    <div class="actions-cell">
+                                        <button class="btn-table btn-view" th:onclick="'viewUser(' + ${user.id} + ')'">
+                                            <i class="bi bi-eye"></i>
+                                            Ver
+                                        </button>
+                                        <button class="btn-table btn-edit" th:onclick="'editUser(' + ${user.id} + ')'">
+                                            <i class="bi bi-pencil"></i>
+                                            Editar
+                                        </button>
+                                        <button class="btn-table btn-reset" th:onclick="'resetPassword(' + ${user.id} + ')'">
+                                            <i class="bi bi-key"></i>
+                                            Reset
+                                        </button>
+                                        <button class="btn-table btn-delete" th:onclick="'confirmDeleteUser(' + ${user.id} + ')'">
+                                            <i class="bi bi-trash"></i>
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- EMPTY STATE -->
+                <div class="empty-state" th:if="${#lists.isEmpty(users)}">
+                    <i class="bi bi-inbox"></i>
+                    <h3>No hay usuarios registrados</h3>
+                    <p>Comienza creando un nuevo usuario</p>
+                    <button class="btn-action btn-primary-custom mt-3" onclick="openNewUserModal()">
+                        <i class="bi bi-plus-lg"></i>
+                        Crear Primer Usuario
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Paginación de usuarios" class="mt-4" th:if="${totalPages > 1}">
+                <ul class="pagination justify-content-center">
+                    <!-- Botón anterior -->
+                    <li th:classappend="${currentPage == 1} ? 'page-item disabled' : 'page-item'">
+                        <a class="page-link" th:href="@{/users(page=${currentPage-1}, search=${searchTerm}, role=${roleFilter}, status=${statusFilter})}" 
+                           aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Páginas -->
+                    <li th:each="page : ${#numbers.sequence(1, totalPages)}" 
+                        th:classappend="${page == currentPage} ? 'page-item active' : 'page-item'">
+                        <a class="page-link" 
+                           th:href="@{/users(page=${page}, search=${searchTerm}, role=${roleFilter}, status=${statusFilter})}"
+                           th:text="${page}">1</a>
+                    </li>
+                    
+                    <!-- Botón siguiente -->
+                    <li th:classappend="${currentPage == totalPages} ? 'page-item disabled' : 'page-item'">
+                        <a class="page-link" th:href="@{/users(page=${currentPage+1}, search=${searchTerm}, role=${roleFilter}, status=${statusFilter})}" 
+                           aria-label="Siguiente">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar usuario -->
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="userForm" th:action="@{/users/save}" method="post">
+                    <div class="modal-header modal-header-custom">
+                        <div>
+                            <h5 class="modal-title" id="modalTitle">Nuevo Usuario</h5>
+                            <p class="text-white mb-0 small">Registra un nuevo usuario en el sistema</p>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- CSRF Token -->
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <input type="hidden" id="userId" name="id" value="">
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Nombre *</label>
+                                <input type="text" class="form-control form-control-custom" id="firstName" name="firstName" 
+                                       placeholder="Nombre" required maxlength="50">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Apellidos *</label>
+                                <input type="text" class="form-control form-control-custom" id="lastName" name="lastName" 
+                                       placeholder="Apellidos" required maxlength="50">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Nombre de Usuario *</label>
+                                <input type="text" class="form-control form-control-custom" id="username" name="username" 
+                                       placeholder="Usuario" required maxlength="50">
+                                <small class="text-muted">Será usado para iniciar sesión</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Email *</label>
+                                <input type="email" class="form-control form-control-custom" id="email" name="email" 
+                                       placeholder="email@ejemplo.com" required maxlength="100">
+                            </div>
+                            <div class="col-md-6" id="passwordField">
+                                <label class="form-label-custom">Contraseña *</label>
+                                <input type="password" class="form-control form-control-custom" id="password" name="password" 
+                                       placeholder="Contraseña" required minlength="6">
+                                <small class="text-muted">Mínimo 6 caracteres</small>
+                            </div>
+                            <div class="col-md-6" id="confirmPasswordField">
+                                <label class="form-label-custom">Confirmar Contraseña *</label>
+                                <input type="password" class="form-control form-control-custom" id="confirmPassword" 
+                                       placeholder="Confirmar contraseña" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Rol *</label>
+                                <select class="form-select form-select-custom" id="role" name="role" required>
+                                    <option value="">Seleccionar rol</option>
+                                    <option value="ADMIN">Administrador</option>
+                                    <option value="DRIVER">Conductor</option>
+                                    <option value="PARENT">Padre/Tutor</option>
+                                    <option value="COORDINATOR">Coordinador</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Teléfono</label>
+                                <input type="tel" class="form-control form-control-custom" id="phone" name="phone" 
+                                       placeholder="555-123-4567" maxlength="15">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-custom">Dirección</label>
+                                <input type="text" class="form-control form-control-custom" id="address" name="address" 
+                                       placeholder="Dirección completa" maxlength="200">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Estado</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enabled" name="enabled" value="true" checked>
+                                    <label class="form-check-label" for="enabled">
+                                        Usuario activo
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Fecha de Registro</label>
+                                <input type="date" class="form-control form-control-custom" id="registrationDate" name="registrationDate">
+                            </div>
+                            
+                            <!-- Campos específicos según rol -->
+                            <div class="col-12" id="driverFields" style="display: none;">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Información de Conductor</h6>
+                                        <div class="row g-2">
+                                            <div class="col-md-6">
+                                                <label class="form-label-custom">Licencia</label>
+                                                <input type="text" class="form-control form-control-custom" id="licenseNumber" name="licenseNumber" 
+                                                       placeholder="Número de licencia">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label-custom">Vehículo Asignado</label>
+                                                <select class="form-select form-select-custom" id="vehicleId" name="vehicleId">
+                                                    <option value="">Seleccionar vehículo</option>
+                                                    <option th:each="vehicle : ${vehicles}" 
+                                                            th:value="${vehicle.id}" 
+                                                            th:text="${vehicle.licensePlate + ' - ' + vehicle.model}">
+                                                        Vehículo
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12" id="parentFields" style="display: none;">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Información de Padre/Tutor</h6>
+                                        <div class="row g-2">
+                                            <div class="col-md-6">
+                                                <label class="form-label-custom">Estudiantes Relacionados</label>
+                                                <select class="form-select form-select-custom" id="studentIds" name="studentIds" multiple>
+                                                    <option th:each="student : ${students}" 
+                                                            th:value="${student.id}" 
+                                                            th:text="${student.firstName + ' ' + student.lastName}">
+                                                        Estudiante
+                                                    </option>
+                                                </select>
+                                                <small class="text-muted">Mantén Ctrl para seleccionar múltiples</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning text-white">
+                            <i class="bi bi-save me-2"></i>
+                            Guardar Usuario
+                        </button>
+                    </

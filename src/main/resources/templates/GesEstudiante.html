@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Estudiantes - SafeRoute</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background-color: #2d3748;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-section {
+            padding: 1.25rem 1rem;
+            background-color: #1a202c;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background-color: #f59e0b;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .logo-text h1 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.125rem;
+        }
+
+        .logo-text p {
+            font-size: 0.7rem;
+            color: #a0aec0;
+            margin: 0;
+        }
+
+        .nav-menu {
+            padding: 0.5rem 0;
+            flex: 1;
+        }
+
+        .nav-item-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 1rem;
+            color: #cbd5e0;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .nav-item-custom:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .nav-item-custom.active {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #1a202c;
+            margin-top: auto;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f59e0b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            margin: 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 240px;
+            flex: 1;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+
+        .header-section {
+            background-color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-section h1 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-section p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        /* Cards para filtros */
+        .filter-card {
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-card-header {
+            background-color: #f8f9fa;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+        }
+
+        .filter-card-body {
+            padding: 1rem;
+        }
+
+        /* Student Cards */
+        .student-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+        .student-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .student-card.active {
+            border-left-color: #22c55e;
+        }
+
+        .student-card.inactive {
+            border-left-color: #ef4444;
+        }
+
+        .student-card.pending {
+            border-left-color: #f59e0b;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .student-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .student-grade {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .detail-icon {
+            color: #9ca3af;
+            flex-shrink: 0;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 0.125rem;
+        }
+
+        .detail-value {
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        .detail-extra {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 0.125rem;
+        }
+
+        .route-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #f59e0b;
+            border-radius: 50%;
+        }
+
+        .route-text {
+            font-size: 0.875rem;
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        /* Action Buttons */
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-edit {
+            background-color: transparent;
+            color: #3b82f6;
+        }
+
+        .btn-edit:hover {
+            background-color: #eff6ff;
+        }
+
+        .btn-delete {
+            background-color: transparent;
+            color: #ef4444;
+        }
+
+        .btn-delete:hover {
+            background-color: #fef2f2;
+        }
+
+        .btn-view {
+            background-color: transparent;
+            color: #10b981;
+        }
+
+        .btn-view:hover {
+            background-color: #ecfdf5;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Modal */
+        .modal-header {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        .modal-header .btn-close {
+            filter: invert(1);
+        }
+
+        /* Table View */
+        .table-container {
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        /* View Toggle */
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .view-toggle-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb;
+            background: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-toggle-btn.active {
+            background-color: #f59e0b;
+            color: white;
+            border-color: #f59e0b;
+        }
+
+        .view-toggle-btn:hover:not(.active) {
+            background-color: #f9fafb;
+        }
+
+        /* Export buttons */
+        .export-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -240px;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-section d-flex align-items-center gap-2">
+                <div class="logo-icon">
+                    <i class="bi bi-bus-front"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>SafeRoute</h1>
+                    <p>Sistema de Gestión</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a class="nav-item-custom" th:href="@{/dashboard}">
+                    <i class="bi bi-grid"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="nav-item-custom active" th:href="@{/students}">
+                    <i class="bi bi-people"></i>
+                    <span>Estudiantes</span>
+                    <span th:if="${pendingRegistrations > 0}" class="badge bg-danger ms-auto" th:text="${pendingRegistrations}">0</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/routes}">
+                    <i class="bi bi-geo-alt"></i>
+                    <span>Rutas</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/drivermap}">
+                    <i class="bi bi-map"></i>
+                    <span>Mapa Conductor</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/alerts}">
+                    <i class="bi bi-bell"></i>
+                    <span>Alertas</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/payments}">
+                    <i class="bi bi-credit-card"></i>
+                    <span>Control Pagos</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/tracking}">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Tracking Tiempo Real</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/reports}">
+                    <i class="bi bi-file-text"></i>
+                    <span>Reportes</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/billing}">
+                    <i class="bi bi-receipt"></i>
+                    <span>Facturación</span>
+                </a>
+                <a class="nav-item-custom" th:href="@{/profile}">
+                    <i class="bi bi-person"></i>
+                    <span>Mi Perfil</span>
+                </a>
+                <!-- Logout Form -->
+                <form th:action="@{/logout}" method="post" class="nav-item-custom" style="border: none; background: none;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" style="background: none; border: none; color: inherit; width: 100%; text-align: left;">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </form>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="user-avatar">
+                        <i class="bi bi-person-circle"></i>
+                    </div>
+                    <div class="user-info">
+                        <p class="user-name" th:text="${#authentication.name} ?: 'Usuario'">Administrador</p>
+                        <p class="user-role" sec:authentication="principal.authorities"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header-section">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h1>Gestión de Estudiantes</h1>
+                        <p>Registro y administración de estudiantes</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-warning text-white" onclick="openNewStudentModal()">
+                            <i class="bi bi-plus-lg me-2"></i>
+                            Nuevo Estudiante
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-4">
+                <!-- ============================================
+                FORMULARIO DE BÚSQUEDA MULTICRITERIO
+                ============================================= -->
+                <div class="search-container mb-4">
+                    <h4 class="mb-4 text-center">
+                        <i class="bi bi-search me-2"></i> Búsqueda Multicriterio de Estudiantes
+                    </h4>
+                    
+                    <form method="get" th:action="@{/students}" class="row g-3">
+                        <!-- Fila 1: Filtros principales -->
+                        <div class="col-md-4">
+                            <div class="filter-card">
+                                <div class="filter-card-header">
+                                    <i class="bi bi-person me-2"></i> Filtro por Nombre
+                                </div>
+                                <div class="filter-card-body">
+                                    <label for="nombre" class="form-label">Nombre del Estudiante</label>
+                                    <div class="input-group">
+                                        <input type="text" name="nombre" id="nombre" 
+                                               class="form-control" th:value="${nombre}"
+                                               placeholder="Ej: Juan Pérez">
+                                        <button type="button" class="btn btn-outline-secondary" 
+                                                onclick="document.getElementById('nombre').value = ''">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="filter-card">
+                                <div class="filter-card-header">
+                                    <i class="bi bi-mortarboard me-2"></i> Filtro por Grado
+                                </div>
+                                <div class="filter-card-body">
+                                    <label for="grado" class="form-label">Grado Escolar</label>
+                                    <select class="form-select" id="grado" name="grado">
+                                        <option value="">Todos los grados</option>
+                                        <option value="PREESCOLAR" th:selected="${grado == 'PREESCOLAR'}">Preescolar</option>
+                                        <option value="1RO" th:selected="${grado == '1RO'}">1er Grado</option>
+                                        <option value="2DO" th:selected="${grado == '2DO'}">2do Grado</option>
+                                        <option value="3RO" th:selected="${grado == '3RO'}">3er Grado</option>
+                                        <option value="4TO" th:selected="${grado == '4TO'}">4to Grado</option>
+                                        <option value="5TO" th:selected="${grado == '5TO'}">5to Grado</option>
+                                        <option value="6TO" th:selected="${grado == '6TO'}">6to Grado</option>
+                                        <option value="SECUNDARIA" th:selected="${grado == 'SECUNDARIA'}">Secundaria</option>
+                                        <option value="BACHILLERATO" th:selected="${grado == 'BACHILLERATO'}">Bachillerato</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="filter-card">
+                                <div class="filter-card-header">
+                                    <i class="bi bi-people me-2"></i> Filtro por Padre/Tutor
+                                </div>
+                                <div class="filter-card-body">
+                                    <label for="parentName" class="form-label">Nombre del Padre/Tutor</label>
+                                    <div class="input-group">
+                                        <input type="text" name="parentName" id="parentName" 
+                                               class="form-control" th:value="${parentName}"
+                                               placeholder="Ej: Ana García">
+                                        <button type="button" class="btn btn-outline-secondary" 
+                                                onclick="document.getElementById('parentName').value = ''">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fila 2: Filtros de ubicación y estado -->
+                        <div class="col-md-3">
+                            <div class="filter-card">
+                                <div class="filter-card-header">
+                                    <i class="bi bi-geo-alt me-2"></i> Filtro por Barrio
+                                </div>
+                                <div class="filter-card-body">
+                                    <label for="barrio" class="form-label">Barrio</label>
+                                    <div class="input-group">
+                                        <input type="text" name="barrio" id="barrio" 
+                                               class="form-control" th:value="${barrio}"
+                                               placeholder="Ej: Centro">
+                                        <button type="button" class="btn btn-outline-secondary" 
+                                                onclick="document.getElementById('barrio').value = ''">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="filter-card">
+                                <div class="filter-card-header">
+                                    <i class="bi bi-buildings me-2"></i> Filtro por Ciudad
+                                </div>
+                                <div class="filter-card-body">
+                                    <label for="ciudad" class="form-label">Ciudad</label>
+                                    <div class="input-group">
+                                        <input type="text" name="ciudad" id="ciudad" 
+                                               class="form-control" th:value="${ciudad}"
+                                               placeholder="Ej: Medellín">
+                                        <button type="button" class="btn btn-outline-secondary" 
+                                                onclick="document.getElementById('ciudad').value = ''">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="filter-card">
+                                <div class="filter-card-header">
+                                    <i class="bi bi-bank me-2"></i> Filtro por Institución
+                                </div>
+                                <div class="filter-card-body">
+                                    <label for="institucion" class="form-label">Institución Educativa</label>
+                                    <div class="input-group">
+                                        <input type="text" name="institucion" id="institucion" 
+                                               class="form-control" th:value="${institucion}"
+                                               placeholder="Ej: Colegio Nacional">
+                                        <button type="button" class="btn btn-outline-secondary" 
+                                                onclick="document.getElementById('institucion').value = ''">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="filter-card">
+                                <div class="filter-card-header">
+                                    <i class="bi bi-check-circle me-2"></i> Filtro por Estado
+                                </div>
+                                <div class="filter-card-body">
+                                    <label for="status" class="form-label">Estado</label>
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="">Todos los estados</option>
+                                        <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Activo</option>
+                                        <option value="INACTIVE" th:selected="${status == 'INACTIVE'}">Inactivo</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fila 3: Filtros de fecha y ruta -->
+                        <div class="col-md-4">
+                            <div class="filter-card">
+                                <div class="filter-card-header">
+                                    <i class="bi bi-calendar me-2"></i> Filtro por Fecha de Registro
+                                </div>
+                                <div class="filter-card-body">
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label for="desde" class="form-label">Desde</label>
+                                            <div class="input-group">
+                                                <input type="date" name="desde" id="desde" 
+                                                       class="form-control" th:value="${desde}">
+                                                <button type="button" class="btn btn-outline-secondary" 
+                                                        onclick="document.getElementById('desde').value = ''">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="hasta" class="form-label">Hasta</label>
+                                            <div class="input-group">
+                                                <input type="date" name="hasta" id="hasta" 
+                                                       class="form-control" th:value="${hasta}">
+                                                <button type="button" class="btn btn-outline-secondary" 
+                                                        onclick="document.getElementById('hasta').value = ''">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="filter-card">
+                                <div class="filter-card-header">
+                                    <i class="bi bi-sign-turn-right me-2"></i> Filtro por Ruta
+                                </div>
+                                <div class="filter-card-body">
+                                    <label for="routeId" class="form-label">Ruta Asignada</label>
+                                    <select class="form-select" id="routeId" name="routeId">
+                                        <option value="">Todas las rutas</option>
+                                        <option th:each="route : ${routes}" 
+                                                th:value="${route.id}" 
+                                                th:text="${route.name}"
+                                                th:selected="${routeId != null and routeId == route.id}">
+                                            Ruta
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fila 4: Botones de acción -->
+                        <div class="col-md-4">
+                            <div class="filter-card">
+                                <div class="filter-card-header">
+                                    <i class="bi bi-lightning-charge me-2"></i> Acciones
+                                </div>
+                                <div class="filter-card-body">
+                                    <div class="d-flex flex-column gap-2">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-search me-1"></i> 🔍 Buscar
+                                        </button>
+                                        <a th:href="@{/students}" class="btn btn-secondary">
+                                            <i class="bi bi-x-circle me-1"></i> Limpiar Filtros
+                                        </a>
+                                        <div class="export-buttons mt-2">
+                                            <a th:href="@{/students/export/pdf(
+                                                nombre=${nombre},
+                                                grado=${grado},
+                                                parentName=${parentName},
+                                                status=${status},
+                                                routeId=${routeId},
+                                                desde=${desde},
+                                                hasta=${hasta},
+                                                barrio=${barrio},
+                                                ciudad=${ciudad},
+                                                institucion=${institucion}
+                                            )}" class="btn btn-danger w-100">
+                                                <i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF
+                                            </a>
+                                            <a th:href="@{/students/export/excel(
+                                                nombre=${nombre},
+                                                grado=${grado},
+                                                parentName=${parentName},
+                                                status=${status},
+                                                routeId=${routeId},
+                                                desde=${desde},
+                                                hasta=${hasta},
+                                                barrio=${barrio},
+                                                ciudad=${ciudad},
+                                                institucion=${institucion}
+                                            )}" class="btn btn-success w-100 mt-2">
+                                                <i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Estadísticas -->
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="card border-success">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Total Estudiantes</h6>
+                                    <h4 class="card-title text-success" th:text="${totalStudents}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Activos</h6>
+                                    <h4 class="card-title text-primary" th:text="${activeStudents}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Registros Pendientes</h6>
+                                    <h4 class="card-title text-warning" th:text="${pendingRegistrations}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-info">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Este Mes</h6>
+                                    <h4 class="card-title text-info" th:text="${studentsThisMonth}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Students List - Card View -->
+                <div class="table-container mb-4">
+                    <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+                        <h5 class="mb-0">Lista de Estudiantes</h5>
+                        <span class="text-muted">Mostrando <span th:text="${totalItems}">0</span> estudiantes</span>
+                    </div>
+                    
+                    <div class="row p-4" id="cardView">
+                        <!-- Datos dinámicos desde el controlador -->
+                        <div th:if="${#lists.isEmpty(students)}" class="empty-state">
+                            <i class="bi bi-people"></i>
+                            <h4 class="h5 mb-2">No hay estudiantes registrados</h4>
+                            <p class="text-muted mb-4">Comienza agregando tu primer estudiante</p>
+                            <button class="btn btn-warning text-white" onclick="openNewStudentModal()">
+                                <i class="bi bi-plus-lg me-2"></i>
+                                Agregar Primer Estudiante
+                            </button>
+                        </div>
+
+                        <div th:each="student : ${students}" class="col-12 mb-3">
+                            <div class="student-card" th:classappend="${student.activo} ? 'active' : 'inactive'">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex gap-3 flex-grow-1">
+                                        <div class="avatar" th:text="${#strings.substring(student.nombreCompleto,0,1) + #strings.substring(student.nombreCompleto, student.nombreCompleto.indexOf(' ') + 1, student.nombreCompleto.indexOf(' ') + 2)}">
+                                            JS
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="mb-3">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="student-name">
+                                                        <span th:text="${student.nombreCompleto}">Juan Sánchez</span>
+                                                    </div>
+                                                    <span th:if="${student.activo}" class="status-badge bg-success">Activo</span>
+                                                    <span th:unless="${student.activo}" class="status-badge bg-danger">Inactivo</span>
+                                                    <span th:if="${student.hasSpecialNeeds}" class="badge bg-info">Necesidades Especiales</span>
+                                                </div>
+                                                <div class="student-grade">
+                                                    <span th:text="${student.grado}">3ro Primaria</span> • 
+                                                    <span th:if="${student.fechaNacimiento}" 
+                                                          th:text="${#dates.format(student.fechaNacimiento, 'dd/MM/yyyy')}">
+                                                        01/01/2015
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3">
+                                                <div class="col-md-6 col-lg-4">
+                                                    <div class="d-flex gap-2">
+                                                        <i class="bi bi-geo-alt detail-icon"></i>
+                                                        <div>
+                                                            <div class="detail-label">Dirección</div>
+                                                            <div class="detail-value" th:text="${student.direccion} ?: 'No especificada'">
+                                                                Calle Falsa 123
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6 col-lg-4">
+                                                    <div class="d-flex gap-2">
+                                                        <i class="bi bi-telephone detail-icon"></i>
+                                                        <div>
+                                                            <div class="detail-label">Contacto</div>
+                                                            <div class="detail-value" th:text="${student.parentPhone ?: 'No especificado'}">555-123-4567</div>
+                                                            <div class="detail-extra" th:text="${student.parentName ?: 'Sin tutor'}">María Sánchez</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6 col-lg-4">
+                                                    <div class="d-flex gap-2">
+                                                        <i class="bi bi-building detail-icon"></i>
+                                                        <div>
+                                                            <div class="detail-label">Institución</div>
+                                                            <div class="detail-value" th:text="${student.institucion ?: 'No especificada'}">
+                                                                Colegio Nacional
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex flex-column gap-2">
+                                        <button class="btn-icon btn-view" th:onclick="'viewStudent(' + ${student.id} + ')'" title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn-icon btn-edit" th:onclick="'editStudent(' + ${student.id} + ')'" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn-icon btn-delete" th:onclick="'confirmDeleteStudent(' + ${student.id} + ')'" title="Eliminar">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <nav aria-label="Paginación de estudiantes" class="mt-4" th:if="${totalPages > 1}">
+                        <ul class="pagination justify-content-center">
+                            <!-- Botón anterior -->
+                            <li th:classappend="${currentPage == 0} ? 'page-item disabled' : 'page-item'">
+                                <a class="page-link" th:href="@{/students(
+                                    page=${currentPage - 1},
+                                    nombre=${nombre},
+                                    grado=${grado},
+                                    parentName=${parentName},
+                                    status=${status},
+                                    routeId=${routeId},
+                                    desde=${desde},
+                                    hasta=${hasta},
+                                    barrio=${barrio},
+                                    ciudad=${ciudad},
+                                    institucion=${institucion}
+                                )}" aria-label="Anterior">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            
+                            <!-- Páginas -->
+                            <li th:each="page : ${#numbers.sequence(1, totalPages)}" 
+                                th:classappend="${page - 1 == currentPage} ? 'page-item active' : 'page-item'">
+                                <a class="page-link" 
+                                   th:href="@{/students(
+                                    page=${page - 1},
+                                    nombre=${nombre},
+                                    grado=${grado},
+                                    parentName=${parentName},
+                                    status=${status},
+                                    routeId=${routeId},
+                                    desde=${desde},
+                                    hasta=${hasta},
+                                    barrio=${barrio},
+                                    ciudad=${ciudad},
+                                    institucion=${institucion}
+                                   )}"
+                                   th:text="${page}">1</a>
+                            </li>
+                            
+                            <!-- Botón siguiente -->
+                            <li th:classappend="${currentPage == totalPages - 1} ? 'page-item disabled' : 'page-item'">
+                                <a class="page-link" th:href="@{/students(
+                                    page=${currentPage + 1},
+                                    nombre=${nombre},
+                                    grado=${grado},
+                                    parentName=${parentName},
+                                    status=${status},
+                                    routeId=${routeId},
+                                    desde=${desde},
+                                    hasta=${hasta},
+                                    barrio=${barrio},
+                                    ciudad=${ciudad},
+                                    institucion=${institucion}
+                                )}" aria-label="Siguiente">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar estudiante -->
+    <div class="modal fade" id="studentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="studentForm" th:action="@{/students/save}" method="post">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="modal-title" id="modalTitle">Nuevo Estudiante</h5>
+                            <p class="text-white small mb-0">Completa la información del estudiante</p>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- CSRF Token -->
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <input type="hidden" id="studentId" name="id" value="">
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre Completo *</label>
+                                <input type="text" class="form-control" id="nombreCompleto" name="nombreCompleto" 
+                                       placeholder="Nombre completo" required maxlength="100">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Código</label>
+                                <input type="text" class="form-control" id="codigo" name="codigo" 
+                                       placeholder="Código único" maxlength="20">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Fecha de Nacimiento</label>
+                                <input type="date" class="form-control" id="fechaNacimiento" name="fechaNacimiento">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Grado</label>
+                                <select class="form-select" id="grado" name="grado">
+                                    <option value="">Seleccionar grado</option>
+                                    <option value="PREESCOLAR">Preescolar</option>
+                                    <option value="1RO">1er Grado</option>
+                                    <option value="2DO">2do Grado</option>
+                                    <option value="3RO">3er Grado</option>
+                                    <option value="4TO">4to Grado</option>
+                                    <option value="5TO">5to Grado</option>
+                                    <option value="6TO">6to Grado</option>
+                                    <option value="SECUNDARIA">Secundaria</option>
+                                    <option value="BACHILLERATO">Bachillerato</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Dirección *</label>
+                                <input type="text" class="form-control" id="direccion" name="direccion" 
+                                       placeholder="Calle, número, colonia" required maxlength="200">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Barrio</label>
+                                <input type="text" class="form-control" id="barrio" name="barrio" 
+                                       placeholder="Barrio" maxlength="50">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Ciudad</label>
+                                <input type="text" class="form-control" id="ciudad" name="ciudad" 
+                                       placeholder="Ciudad" maxlength="50">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre del Padre/Tutor</label>
+                                <input type="text" class="form-control" id="parentName" name="parentName" 
+                                       placeholder="Nombre completo del tutor" maxlength="100">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" id="parentPhone" name="parentPhone" 
+                                       placeholder="555-000-0000">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="parentEmail" name="parentEmail" 
+                                       placeholder="email@ejemplo.com" maxlength="100">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Institución Educativa</label>
+                                <input type="text" class="form-control" id="institucion" name="institucion" 
+                                       placeholder="Nombre de la institución" maxlength="100">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Estado</label>
+                                <select class="form-select" id="activo" name="activo">
+                                    <option value="true">Activo</option>
+                                    <option value="false">Inactivo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Ruta Asignada</label>
+                                <select class="form-select" id="routeId" name="routeId">
+                                    <option value="">Sin ruta asignada</option>
+                                    <option th:each="route : ${routes}" 
+                                            th:value="${route.id}" 
+                                            th:text="${route.name}">
+                                        Ruta
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Observaciones</label>
+                                <textarea class="form-control" id="observaciones" name="observaciones" rows="3" 
+                                          placeholder="Notas adicionales sobre el estudiante"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning text-white" id="submitBtn">
+                            <i class="bi bi-save me-2"></i>
+                            Guardar Estudiante
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ver detalles de estudiante -->
+    <div class="modal fade" id="viewStudentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #2563eb; color: white;">
+                    <h5 class="modal-title fw-bold">Detalles del Estudiante</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="studentDetailsContent">
+                    <!-- Contenido cargado dinámicamente -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para confirmar eliminación -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Confirmar Eliminación
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar este estudiante?</p>
+                    <p class="text-muted small">Esta acción no se puede deshacer. Todos los datos del estudiante serán eliminados permanentemente.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="bi bi-trash me-2"></i>
+                        Sí, Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Variables globales
+        let studentToDelete = null;
+        const studentModal = new bootstrap.Modal(document.getElementById('studentModal'));
+        const viewStudentModal = new bootstrap.Modal(document.getElementById('viewStudentModal'));
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+
+        // Configurar listeners de eventos
+        function setupEventListeners() {
+            // Formulario de estudiante
+            document.getElementById('studentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                validateAndSubmitStudentForm();
+            });
+
+            // Confirmación de eliminación
+            document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+                if (studentToDelete) {
+                    deleteStudent(studentToDelete);
+                }
+            });
+        }
+
+        // Abrir modal para nuevo estudiante
+        function openNewStudentModal() {
+            resetStudentForm();
+            document.getElementById('modalTitle').textContent = 'Nuevo Estudiante';
+            document.querySelector('.modal-header p').textContent = 'Completa la información del estudiante';
+            studentModal.show();
+        }
+
+        // Editar estudiante existente
+        function editStudent(studentId) {
+            fetch(`/students/api/${studentId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Error al cargar estudiante');
+                    return response.json();
+                })
+                .then(student => {
+                    // Llenar formulario con datos del estudiante
+                    document.getElementById('studentId').value = student.id;
+                    document.getElementById('nombreCompleto').value = student.nombreCompleto || '';
+                    document.getElementById('codigo').value = student.codigo || '';
+                    document.getElementById('fechaNacimiento').value = student.fechaNacimiento || '';
+                    document.getElementById('grado').value = student.grado || '';
+                    document.getElementById('direccion').value = student.direccion || '';
+                    document.getElementById('barrio').value = student.barrio || '';
+                    document.getElementById('ciudad').value = student.ciudad || '';
+                    document.getElementById('parentName').value = student.parentName || '';
+                    document.getElementById('parentPhone').value = student.parentPhone || '';
+                    document.getElementById('parentEmail').value = student.parentEmail || '';
+                    document.getElementById('institucion').value = student.institucion || '';
+                    document.getElementById('activo').value = student.activo ? 'true' : 'false';
+                    document.getElementById('routeId').value = student.routeId || '';
+                    document.getElementById('observaciones').value = student.observaciones || '';
+
+                    // Actualizar título del modal
+                    document.getElementById('modalTitle').textContent = 'Editar Estudiante';
+                    document.querySelector('.modal-header p').textContent = 'Modifica la información del estudiante';
+
+                    // Mostrar modal
+                    studentModal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error al cargar los datos del estudiante', 'danger');
+                });
+        }
+
+        // Ver detalles de estudiante
+        function viewStudent(studentId) {
+            fetch(`/students/${studentId}`)
+                .then(response => response.text())
+                .then(html => {
+                    const content = document.getElementById('studentDetailsContent');
+                    content.innerHTML = html;
+                    viewStudentModal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error al cargar detalles del estudiante', 'danger');
+                });
+        }
+
+        // Confirmar eliminación de estudiante
+        function confirmDeleteStudent(studentId) {
+            studentToDelete = studentId;
+            deleteModal.show();
+        }
+
+        // Eliminar estudiante
+        function deleteStudent(studentId) {
+            fetch(`/students/delete/${studentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    showNotification('Estudiante eliminado correctamente', 'success');
+                    deleteModal.hide();
+                    location.reload(); // Recargar página para ver cambios
+                } else {
+                    throw new Error('Error al eliminar estudiante');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error al eliminar el estudiante', 'danger');
+            });
+        }
+
+        // Validar y enviar formulario
+        function validateAndSubmitStudentForm() {
+            const form = document.getElementById('studentForm');
+            const nombreCompleto = document.getElementById('nombreCompleto').value.trim();
+            const direccion = document.getElementById('direccion').value.trim();
+
+            // Validaciones básicas
+            if (!nombreCompleto) {
+                showNotification('Nombre completo es obligatorio', 'warning');
+                return;
+            }
+
+            if (!direccion) {
+                showNotification('Dirección es obligatoria', 'warning');
+                return;
+            }
+
+            // Enviar formulario
+            form.submit();
+        }
+
+        // Resetear formulario
+        function resetStudentForm() {
+            const form = document.getElementById('studentForm');
+            form.reset();
+            document.getElementById('studentId').value = '';
+        }
+
+        // Mostrar notificación
+        function showNotification(message, type = 'info') {
+            // Crear nueva notificación
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remover después de 5 segundos
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

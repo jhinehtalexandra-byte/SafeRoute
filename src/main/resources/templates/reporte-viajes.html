@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Reporte de Viajes - RutaEscolar</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #f59e0b;
+        }
+        
+        .header h1 {
+            color: #1e293b;
+            font-size: 20pt;
+            margin: 0 0 5px 0;
+        }
+        
+        .header p {
+            color: #64748b;
+            margin: 3px 0;
+            font-size: 10pt;
+        }
+        
+        .info-box {
+            background-color: #f8fafc;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .info-box p {
+            margin: 3px 0;
+            font-size: 9pt;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 9pt;
+        }
+        
+        th {
+            background-color: #1e293b;
+            color: white;
+            padding: 8px 6px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 9pt;
+        }
+        
+        td {
+            padding: 6px 6px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 8pt;
+            font-weight: bold;
+        }
+        
+        .badge-success {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .badge-secondary {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 8pt;
+            color: #64748b;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background-color: #f1f5f9;
+            border-top: 2px solid #1e293b;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚌 RutaEscolar - Reporte de Viajes</h1>
+        <p>Sistema de Gestión de Transporte Escolar</p>
+    </div>
+    
+    <div class="info-box">
+        <p><strong>Fecha de Generación:</strong> ${.now?string("dd/MM/yyyy HH:mm")}</p>
+        <#if desde??>
+            <p><strong>Periodo:</strong> Desde ${desde?string("dd/MM/yyyy")} 
+            <#if hasta??>hasta ${hasta?string("dd/MM/yyyy")}</#if>
+            </p>
+        <#else>
+            <p><strong>Periodo:</strong> Todos los registros</p>
+        </#if>
+        <p><strong>Total de Registros:</strong> ${clientes?size}</p>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 10%;">Fecha</th>
+                <th style="width: 18%;">Ruta</th>
+                <th style="width: 15%;">Conductor</th>
+                <th style="width: 8%;">Inicio</th>
+                <th style="width: 8%;">Fin</th>
+                <th style="width: 10%;">Duración</th>
+                <th style="width: 8%;">Estudiantes</th>
+                <th style="width: 10%;">Distancia</th>
+                <th style="width: 13%;">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <#list clientes as reporte>
+            <tr>
+                <td>${reporte.fecha?string("dd/MM/yyyy")}</td>
+                <td>${reporte.rutaNombre}</td>
+                <td>${reporte.conductorNombre}</td>
+                <td>${reporte.horaInicio}</td>
+                <td>${reporte.horaFin}</td>
+                <td>${reporte.duracion}</td>
+                <td style="text-align: center;">${reporte.cantidadEstudiantes}</td>
+                <td style="text-align: right;">${reporte.distancia} km</td>
+                <td>
+                    <#if reporte.estado == "A_TIEMPO">
+                        <span class="badge badge-success">✓ A tiempo</span>
+                    <#elseif reporte.estado == "RETRASADO">
+                        <span class="badge badge-warning">⏰ Retrasado</span>
+                    <#elseif reporte.estado == "COMPLETADO">
+                        <span class="badge badge-success">✓ Completado</span>
+                    <#elseif reporte.estado == "CANCELADO">
+                        <span class="badge badge-danger">✗ Cancelado</span>
+                    <#else>
+                        <span class="badge badge-secondary">${reporte.estadoTexto}</span>
+                    </#if>
+                </td>
+            </tr>
+            </#list>
+            
+            <#if (clientes?size == 0)>
+            <tr>
+                <td colspan="9" style="text-align: center; padding: 20px; color: #94a3b8;">
+                    No hay datos para mostrar en este reporte
+                </td>
+            </tr>
+            </#if>
+        </tbody>
+        
+        <#if (clientes?size > 0)>
+        <tfoot>
+            <tr class="total-row">
+                <td colspan="6" style="text-align: right; padding-right: 10px;">TOTAL REGISTROS:</td>
+                <td colspan="3" style="text-align: left; padding-left: 10px;">${clientes?size} viajes</td>
+            </tr>
+        </tfoot>
+        </#if>
+    </table>
+    
+    <div class="footer">
+        <p>RutaEscolar © 2025 | Sistema de Gestión de Transporte Escolar</p>
+        <p>Documento generado automáticamente | Fecha: ${.now?string("dd/MM/yyyy HH:mm:ss")}</p>
+    </div>
+</body>
+</html>

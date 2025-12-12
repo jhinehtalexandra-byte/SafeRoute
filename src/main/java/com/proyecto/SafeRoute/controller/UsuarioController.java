@@ -8,241 +8,298 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Controlador para la gestión de usuarios (CRUD completo)
+ * Solo accesible para usuarios con rol ADMIN
+ */
 @Controller
+@RequestMapping("/usuarios")
 public class UsuarioController {
 
     @Autowired
-    private UsuarioRepository repo;
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
-    // ========== PÁGINA DE INICIO (PÚBLICA, SIN AUTENTICACIÓN) ==========
-    
-    @GetMapping("/")
-    public String index() {
-        return "home";  // Landing page pública
-    }
-
-    @GetMapping("/home")
-    public String home() {
-        return "home";  // Landing page pública
-    }
-
-    // ========== PÁGINA DE LOGIN ==========
-    
-    @GetMapping("/login")
-    public String login() {
-        return "login";
-    }
-
-    // ========== DASHBOARD (solo para ADMIN después del login) ==========
-    
-    @GetMapping("/dashboard")
-    public String dashboard(Model model, Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return "redirect:/login";
+    /**
+     * Lista todos los usuarios del sistema
+     * Vista: Usuarios.html (CRUD)
+     */
+    @GetMapping
+    public String listarUsuarios(Model model, Authentication authentication) {
+        // Agregar información del usuario actual al modelo
+        if (authentication != null) {
+            String username = authentication.getName();
+            usuarioRepository.findByUserName(username).ifPresent(usuario -> {
+                model.addAttribute("usuarioActual", usuario);
+            });
         }
         
-        String username = auth.getName();
-        String roles = auth.getAuthorities().toString();
-        
-        model.addAttribute("username", username);
-        model.addAttribute("rol", roles);
-        
-        return "dashboard";
+        List<Usuario> usuarios = usuarioRepository.findAll();
+        model.addAttribute("usuarios", usuarios);
+        return "Usuarios";
     }
 
-    // ========== PÁGINAS SOLO PARA ADMIN ==========
-    
-    @GetMapping("/Users")
-    public String listarUsuarios(Model model) {
-        model.addAttribute("usuarios", repo.findAll());
-        return "Users";
-    }
-
-    @GetMapping("/Users/nuevo")
-    public String nuevoUsuario(Model model) {
+    /**
+     * Muestra el formulario para crear un nuevo usuario
+     * Vista: FormCrearUsuario.html
+     */
+    @GetMapping("/nuevo")
+    public String mostrarFormularioNuevo(Model model, Authentication authentication) {
+        // Agregar información del usuario actual
+        if (authentication != null) {
+            String username = authentication.getName();
+            usuarioRepository.findByUserName(username).ifPresent(usuario -> {
+                model.addAttribute("usuarioActual", usuario);
+            });
+        }
+        
         model.addAttribute("usuario", new Usuario());
-        return "form";
+        model.addAttribute("esNuevo", true);
+        return "FormCrearUsuario";
     }
 
-    @PostMapping("/Users/guardar")
-    public String guardarUsuario(@ModelAttribute Usuario usuario) {
-        if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
-            usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+    /**
+     * Muestra el formulario para editar un usuario existente
+     * Vista: FormCrearUsuario.html
+     */
+    @GetMapping("/editar/{id}")
+    public String mostrarFormularioEditar(
+            @PathVariable Long id, 
+            Model model, 
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        
+        if (id == null || id <= 0) {
+            redirectAttributes.addFlashAttribute("error", "ID de usuario inválido");
+            return "redirect:/usuarios";
         }
-        repo.save(usuario);
-        return "redirect:/Users";
+        
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+        
+        if (!usuarioOpt.isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "Usuario no encontrado");
+            return "redirect:/usuarios";
+        }
+        
+        // Agregar información del usuario actual
+        if (authentication != null) {
+            String username = authentication.getName();
+            usuarioRepository.findByUserName(username).ifPresent(usuario -> {
+                model.addAttribute("usuarioActual", usuario);
+            });
+        }
+        
+        model.addAttribute("usuario", usuarioOpt.get());
+        model.addAttribute("esNuevo", false);
+        return "FormCrearUsuario";
     }
 
-    @GetMapping("/Users/editar/{id}")
-    public String editarUsuario(@PathVariable Long id, Model model) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID no puede ser nulo");
+    /**
+     * Guarda o actualiza un usuario
+     */
+    @PostMapping("/guardar")
+    public String guardarUsuario(
+            @RequestParam(required = false) Long id,
+            @RequestParam String userName,
+            @RequestParam String nombre,
+            @RequestParam String email,
+            @RequestParam(required = false) String telefono,
+            @RequestParam(required = false) String password,
+            @RequestParam String rol,
+            @RequestParam(defaultValue = "true") Boolean activo,
+            RedirectAttributes redirectAttributes) {
+        
+        try {
+            // Validaciones básicas
+            if (userName == null || userName.trim().isEmpty()) {
+                throw new RuntimeException("El nombre de usuario es requerido");
+            }
+            if (nombre == null || nombre.trim().isEmpty()) {
+                throw new RuntimeException("El nombre es requerido");
+            }
+            if (email == null || email.trim().isEmpty()) {
+                throw new RuntimeException("El email es requerido");
+            }
+            if (rol == null || rol.trim().isEmpty()) {
+                throw new RuntimeException("El rol es requerido");
+            }
+            
+            Usuario usuario;
+            
+            if (id != null && id > 0) {
+                // Actualizar usuario existente
+                Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+                
+                if (!usuarioOpt.isPresent()) {
+                    throw new RuntimeException("Usuario no encontrado");
+                }
+                
+                usuario = usuarioOpt.get();
+                
+                // Validar que el username no esté en uso por otro usuario
+                Optional<Usuario> usuarioPorUsername = usuarioRepository.findByUserName(userName.trim());
+                if (usuarioPorUsername.isPresent() && !usuarioPorUsername.get().getId().equals(id)) {
+                    throw new RuntimeException("El nombre de usuario ya está en uso por otro usuario");
+                }
+                
+                // Validar que el email no esté en uso por otro usuario
+                Optional<Usuario> usuarioPorEmail = usuarioRepository.findByEmail(email.trim());
+                if (usuarioPorEmail.isPresent() && !usuarioPorEmail.get().getId().equals(id)) {
+                    throw new RuntimeException("El correo electrónico ya está en uso por otro usuario");
+                }
+                
+            } else {
+                // Crear nuevo usuario
+                usuario = new Usuario();
+                
+                // Validar que el username no exista
+                if (usuarioRepository.existsByUserName(userName.trim())) {
+                    throw new RuntimeException("El nombre de usuario ya está en uso");
+                }
+                
+                // Validar que el email no exista
+                if (usuarioRepository.existsByEmail(email.trim())) {
+                    throw new RuntimeException("El correo electrónico ya está en uso");
+                }
+                
+                // Para nuevos usuarios, la contraseña es obligatoria
+                if (password == null || password.trim().isEmpty()) {
+                    throw new RuntimeException("La contraseña es requerida para nuevos usuarios");
+                }
+            }
+            
+            // Actualizar datos (trim para evitar espacios en blanco)
+            usuario.setUserName(userName.trim());
+            usuario.setNombre(nombre.trim());
+            usuario.setEmail(email.trim());
+            usuario.setTelefono(telefono != null ? telefono.trim() : null);
+            usuario.setRol(rol);
+            usuario.setActivo(activo != null ? activo : true);
+            
+            // Solo actualizar contraseña si se proporcionó una nueva
+            if (password != null && !password.trim().isEmpty()) {
+                // Validar longitud mínima de contraseña
+                if (password.length() < 4) {
+                    throw new RuntimeException("La contraseña debe tener al menos 4 caracteres");
+                }
+                usuario.setPassword(passwordEncoder.encode(password));
+            }
+            
+            usuarioRepository.save(usuario);
+            
+            String mensaje = id != null && id > 0 ? 
+                "Usuario actualizado correctamente" : 
+                "Usuario creado correctamente";
+            redirectAttributes.addFlashAttribute("mensaje", mensaje);
+            redirectAttributes.addFlashAttribute("tipo", "success");
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute("tipo", "danger");
+            
+            // Si hay error, redirigir al formulario correspondiente
+            if (id != null && id > 0) {
+                return "redirect:/usuarios/editar/" + id;
+            } else {
+                return "redirect:/usuarios/nuevo";
+            }
         }
         
-        Usuario usuario = repo.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + id));
-        
-        model.addAttribute("usuario", usuario);
-        return "form";
+        return "redirect:/usuarios";
     }
 
-    @GetMapping("/Users/eliminar/{id}")
-    public String eliminarUsuario(@PathVariable Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID no puede ser nulo");
+    /**
+     * Elimina un usuario
+     */
+    @PostMapping("/eliminar/{id}")
+    public String eliminarUsuario(
+            @PathVariable Long id, 
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        
+        try {
+            if (id == null || id <= 0) {
+                throw new RuntimeException("ID de usuario inválido");
+            }
+            
+            Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+            
+            if (!usuarioOpt.isPresent()) {
+                throw new RuntimeException("Usuario no encontrado");
+            }
+            
+            // Prevenir que el usuario se elimine a sí mismo
+            if (authentication != null) {
+                String username = authentication.getName();
+                Optional<Usuario> usuarioActual = usuarioRepository.findByUserName(username);
+                if (usuarioActual.isPresent() && usuarioActual.get().getId().equals(id)) {
+                    throw new RuntimeException("No puedes eliminar tu propio usuario");
+                }
+            }
+            
+            usuarioRepository.deleteById(id);
+            
+            redirectAttributes.addFlashAttribute("mensaje", "Usuario eliminado correctamente");
+            redirectAttributes.addFlashAttribute("tipo", "success");
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute("tipo", "danger");
         }
         
-        if (!repo.existsById(id)) {
-            throw new IllegalArgumentException("Usuario no encontrado con ID: " + id);
-        }
-        
-        repo.deleteById(id);
-        return "redirect:/Users";
+        return "redirect:/usuarios";
     }
 
-    // ========== PÁGINA PARA PADRES (PARENT) ==========
-    
-    @GetMapping("/Payments")
-    public String payments(Model model, Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return "redirect:/login";
-        }
+    /**
+     * Activa o desactiva un usuario
+     */
+    @PostMapping("/toggle-estado/{id}")
+    public String toggleEstadoUsuario(
+            @PathVariable Long id, 
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
         
-        String username = auth.getName();
-        model.addAttribute("username", username);
-        
-        return "Payments";
-    }
-
-    // ========== PÁGINA PARA CONDUCTORES (DRIVER) ==========
-    
-    @GetMapping("/DriverMap")
-    public String driverMap(Model model, Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return "redirect:/login";
-        }
-        
-        String username = auth.getName();
-        model.addAttribute("username", username);
-        
-        return "DriverMap";
-    }
-
-    // ========== PERFIL (todos los usuarios autenticados) ==========
-    
-    @GetMapping("/Profile")
-    public String perfil(Model model, Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return "redirect:/login";
-        }
-        
-        String username = auth.getName();
-        if (username == null || username.isEmpty()) {
-            throw new IllegalArgumentException("Usuario no autenticado correctamente");
-        }
-        
-        Usuario usuario = repo.findByUserName(username)
-            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
-        
-        model.addAttribute("usuario", usuario);
-        return "Profile";
-    }
-
-    @PostMapping("/Profile/guardar")
-    public String guardarPerfil(@ModelAttribute Usuario usuarioForm, Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
-            return "redirect:/login";
-        }
-        
-        String username = auth.getName();
-        if (username == null || username.isEmpty()) {
-            throw new IllegalArgumentException("Usuario no autenticado correctamente");
-        }
-        
-        Usuario actual = repo.findByUserName(username)
-            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
-        
-        // Actualizar información básica
-        if (usuarioForm.getUserName() != null && !usuarioForm.getUserName().isEmpty()) {
-            actual.setUserName(usuarioForm.getUserName());
-        }
-        
-        // Actualizar password solo si se proporciona uno nuevo
-        if (usuarioForm.getPassword() != null && !usuarioForm.getPassword().isEmpty()) {
-            actual.setPassword(passwordEncoder.encode(usuarioForm.getPassword()));
-        }
-        
-        // Actualizar información personal
-        if (usuarioForm.getNombreCompleto() != null) {
-            actual.setNombreCompleto(usuarioForm.getNombreCompleto());
-        }
-        if (usuarioForm.getEmail() != null) {
-            actual.setEmail(usuarioForm.getEmail());
-        }
-        if (usuarioForm.getTelefono() != null) {
-            actual.setTelefono(usuarioForm.getTelefono());
-        }
-        if (usuarioForm.getCedula() != null) {
-            actual.setCedula(usuarioForm.getCedula());
-        }
-        if (usuarioForm.getDireccion() != null) {
-            actual.setDireccion(usuarioForm.getDireccion());
-        }
-        if (usuarioForm.getCiudad() != null) {
-            actual.setCiudad(usuarioForm.getCiudad());
-        }
-        if (usuarioForm.getFechaNacimiento() != null) {
-            actual.setFechaNacimiento(usuarioForm.getFechaNacimiento());
-        }
-        
-        // Campos específicos para DRIVER
-        if ("DRIVER".equals(actual.getRol())) {
-            if (usuarioForm.getLicenciaConducir() != null) {
-                actual.setLicenciaConducir(usuarioForm.getLicenciaConducir());
+        try {
+            if (id == null || id <= 0) {
+                throw new RuntimeException("ID de usuario inválido");
             }
-            if (usuarioForm.getFechaVencimientoLicencia() != null) {
-                actual.setFechaVencimientoLicencia(usuarioForm.getFechaVencimientoLicencia());
+            
+            Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+            
+            if (!usuarioOpt.isPresent()) {
+                throw new RuntimeException("Usuario no encontrado");
             }
-            if (usuarioForm.getTipoLicencia() != null) {
-                actual.setTipoLicencia(usuarioForm.getTipoLicencia());
+            
+            Usuario usuario = usuarioOpt.get();
+            
+            // Prevenir que el usuario se desactive a sí mismo
+            if (authentication != null) {
+                String username = authentication.getName();
+                Optional<Usuario> usuarioActual = usuarioRepository.findByUserName(username);
+                if (usuarioActual.isPresent() && usuarioActual.get().getId().equals(id)) {
+                    throw new RuntimeException("No puedes cambiar el estado de tu propio usuario");
+                }
             }
-            if (usuarioForm.getPlacaVehiculo() != null) {
-                actual.setPlacaVehiculo(usuarioForm.getPlacaVehiculo());
-            }
+            
+            usuario.setActivo(!usuario.getActivo());
+            usuarioRepository.save(usuario);
+            
+            String estado = usuario.getActivo() ? "activado" : "desactivado";
+            redirectAttributes.addFlashAttribute("mensaje", "Usuario " + estado + " correctamente");
+            redirectAttributes.addFlashAttribute("tipo", "success");
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addFlashAttribute("tipo", "danger");
         }
         
-        // Campos específicos para PARENT
-        if ("PARENT".equals(actual.getRol())) {
-            if (usuarioForm.getNombreEstudiante() != null) {
-                actual.setNombreEstudiante(usuarioForm.getNombreEstudiante());
-            }
-            if (usuarioForm.getGradoEstudiante() != null) {
-                actual.setGradoEstudiante(usuarioForm.getGradoEstudiante());
-            }
-            if (usuarioForm.getNombreContactoEmergencia() != null) {
-                actual.setNombreContactoEmergencia(usuarioForm.getNombreContactoEmergencia());
-            }
-            if (usuarioForm.getTelefonoEmergencia() != null) {
-                actual.setTelefonoEmergencia(usuarioForm.getTelefonoEmergencia());
-            }
-        }
-        
-        repo.save(actual);
-        
-        // Redirigir según el rol
-        String rol = actual.getRol();
-        if ("ADMIN".equals(rol)) {
-            return "redirect:/dashboard?actualizado";
-        } else if ("PARENT".equals(rol)) {
-            return "redirect:/Profile?actualizado";
-        } else if ("DRIVER".equals(rol)) {
-            return "redirect:/Profile?actualizado";
-        }
-        
-        return "redirect:/Profile?actualizado";
+        return "redirect:/usuarios";
     }
 }

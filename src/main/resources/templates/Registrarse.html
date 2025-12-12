@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - RutaEscolar</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+            background-size: cover;
+        }
+
+        .register-container {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 1000px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            position: relative;
+            z-index: 1;
+        }
+
+        .register-side {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 3rem 2rem;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            background-color: #f59e0b;
+            border-radius: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .register-side h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .register-side > p {
+            font-size: 0.875rem;
+            color: #cbd5e1;
+            margin-bottom: 2rem;
+        }
+
+        .feature-list {
+            margin-top: 1rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: start;
+            margin-bottom: 1rem;
+            gap: 0.75rem;
+        }
+
+        .feature-item i {
+            color: #f59e0b;
+            font-size: 1.25rem;
+            margin-top: 0.125rem;
+        }
+
+        .feature-item p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: #cbd5e1;
+        }
+
+        .form-side {
+            padding: 3rem;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        .form-side h2 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-side > p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+            outline: none;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: start;
+            gap: 0.75rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-top: 0.25rem;
+            width: 1.125rem;
+            height: 1.125rem;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .checkbox-group a {
+            color: #f59e0b;
+            text-decoration: none;
+        }
+
+        .checkbox-group a:hover {
+            text-decoration: underline;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 0.875rem;
+            background-color: #f59e0b;
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-register:hover {
+            background-color: #e67e22;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .login-link p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .login-link a {
+            color: #f59e0b;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .alert-custom {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .back-home {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .back-home:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateX(-3px);
+        }
+
+        .password-requirements {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 992px) {
+            .register-container {
+                grid-template-columns: 1fr;
+            }
+
+            .register-side {
+                display: none;
+            }
+
+            .form-side {
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            body {
+                padding: 1rem;
+            }
+
+            .form-side {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón volver al inicio -->
+    <a th:href="@{/home}" class="back-home">
+        <i class="bi bi-arrow-left"></i>
+        Volver al inicio
+    </a>
+
+    <div class="register-container">
+        <div class="register-side">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i class="bi bi-bus-front"></i>
+                </div>
+                <h2>RutaEscolar</h2>
+                <p>Sistema de Gestión de Transporte</p>
+            </div>
+
+            <p style="font-size: 1rem; color: white; font-weight: 500; margin-bottom: 1.5rem;">
+                Únete a la plataforma líder en gestión de transporte escolar
+            </p>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <p>Seguimiento GPS en tiempo real</p>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <p>Notificaciones automáticas</p>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <p>Rutas optimizadas y seguras</p>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <p>Panel de control completo</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-side">
+            <h2>Crear Cuenta</h2>
+            <p>Completa tus datos para comenzar</p>
+
+            <!-- Mensajes de error y éxito -->
+            <div th:if="${error}" class="alert-custom alert-error">
+                <i class="bi bi-exclamation-circle"></i>
+                <span th:text="${error}"></span>
+            </div>
+
+            <div th:if="${mensaje}" class="alert-custom alert-success">
+                <i class="bi bi-check-circle"></i>
+                <span th:text="${mensaje}"></span>
+            </div>
+
+            <!-- Formulario de registro -->
+            <form th:action="@{/registrarse}" method="post" id="registerForm">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="nombre" class="form-label">Nombre Completo</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="nombre" 
+                            name="nombre"
+                            placeholder="Juan Pérez" 
+                            required
+                            minlength="3"
+                        >
+                    </div>
+
+                    <div class="col-12">
+                        <label for="userName" class="form-label">Nombre de Usuario</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="userName" 
+                            name="userName"
+                            placeholder="juanperez" 
+                            required
+                            minlength="4"
+                            pattern="[a-zA-Z0-9_]+"
+                        >
+                        <small class="text-muted">Solo letras, números y guion bajo (_)</small>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="email" class="form-label">Correo Electrónico</label>
+                        <input 
+                            type="email" 
+                            class="form-control" 
+                            id="email" 
+                            name="email"
+                            placeholder="tu@email.com" 
+                            required
+                        >
+                    </div>
+
+                    <div class="col-12">
+                        <label for="telefono" class="form-label">Teléfono (Opcional)</label>
+                        <input 
+                            type="tel" 
+                            class="form-control" 
+                            id="telefono" 
+                            name="telefono"
+                            placeholder="+57 300 123 4567"
+                        >
+                    </div>
+
+                    <div class="col-12">
+                        <label for="rol" class="form-label">Tipo de Usuario</label>
+                        <select class="form-select" id="rol" name="rol" required>
+                            <option value="">Selecciona una opción</option>
+                            <option value="PADRE">Padre de Familia</option>
+                            <option value="CONDUCTOR">Conductor</option>
+                        </select>
+                        <small class="text-muted">Los usuarios administradores son creados por el sistema</small>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input 
+                            type="password" 
+                            class="form-control" 
+                            id="password" 
+                            name="password"
+                            placeholder="••••••••" 
+                            required
+                            minlength="3"
+                        >
+                        <div class="password-requirements">
+                            Mínimo 3 caracteres
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+                        <input 
+                            type="password" 
+                            class="form-control" 
+                            id="confirmPassword" 
+                            placeholder="••••••••" 
+                            required
+                            minlength="3"
+                        >
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="terms" required>
+                            <label for="terms">
+                                Acepto los <a href="#" onclick="event.preventDefault();">términos y condiciones</a> 
+                                y la <a href="#" onclick="event.preventDefault();">política de privacidad</a>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <button type="submit" class="btn-register">
+                            <i class="bi bi-person-plus me-2"></i>
+                            Crear Cuenta
+                        </button>
+                    </div>
+                </div>
+
+                <div class="login-link">
+                    <p>¿Ya tienes una cuenta? <a th:href="@{/login}">Inicia sesión aquí</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Validar que las contraseñas coincidan
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Las contraseñas no coinciden. Por favor verifica.');
+                document.getElementById('confirmPassword').focus();
+                return false;
+            }
+        });
+
+        // Validar username solo con caracteres permitidos
+        document.getElementById('userName').addEventListener('input', function(e) {
+            const value = e.target.value;
+            const regex = /^[a-zA-Z0-9_]*$/;
+            
+            if (!regex.test(value)) {
+                e.target.value = value.replace(/[^a-zA-Z0-9_]/g, '');
+            }
+        });
+
+        // Ocultar mensajes después de 5 segundos
+        setTimeout(function () {
+            const mensajes = document.querySelectorAll('.alert-custom');
+            mensajes.forEach(function(mensaje) {
+                if (mensaje) {
+                    mensaje.style.transition = 'opacity 0.5s ease-out';
+                    mensaje.style.opacity = '0';
+                    setTimeout(function() {
+                        mensaje.style.display = 'none';
+                    }, 500);
+                }
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

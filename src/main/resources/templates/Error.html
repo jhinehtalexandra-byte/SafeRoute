@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página No Encontrada - RutaEscolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .error-wrapper {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Formas de fondo animadas */
+        .background-element {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .bg-element-1 {
+            width: 400px;
+            height: 400px;
+            background: #f59e0b;
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .bg-element-2 {
+            width: 300px;
+            height: 300px;
+            background: #3b82f6;
+            bottom: -50px;
+            right: -50px;
+            animation-delay: 2s;
+        }
+
+        .bg-element-3 {
+            width: 250px;
+            height: 250px;
+            background: #10b981;
+            top: 50%;
+            right: 10%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0);
+            }
+            50% {
+                transform: translate(30px, 30px);
+            }
+        }
+
+        /* Contenedor del error */
+        .error-container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 2rem;
+            max-width: 700px;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Encabezado con logo */
+        .error-header {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .logo-icon-error {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .error-brand {
+            text-align: left;
+        }
+
+        .error-brand h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+        }
+
+        .error-brand p {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            margin: 0;
+        }
+
+        /* Icono del error */
+        .error-icon {
+            font-size: 7rem;
+            margin: 2rem 0;
+            animation: bounce 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-40px);
+            }
+        }
+
+        /* Código de error */
+        .error-code {
+            font-size: 5rem;
+            font-weight: 900;
+            color: #f59e0b;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            line-height: 1;
+        }
+
+        /* Mensaje de error */
+        .error-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        /* Descripción */
+        .error-description {
+            font-size: 1.05rem;
+            color: #cbd5e0;
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Tarjeta de información */
+        .info-box-error {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-box-error i {
+            font-size: 2rem;
+            color: #f59e0b;
+            margin-bottom: 1rem;
+        }
+
+        .info-box-error h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box-error p {
+            font-size: 0.9rem;
+            color: #a0aec0;
+            margin: 0;
+        }
+
+        /* Botones */
+        .button-group-error {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-error {
+            padding: 0.85rem 2rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-error-primary {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-error-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+            color: white;
+            text-decoration: none;
+            background: linear-gradient(135deg, #d97706, #b45309);
+        }
+
+        .btn-error-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f59e0b;
+            border: 2px solid #f59e0b;
+        }
+
+        .btn-error-secondary:hover {
+            background: rgba(245, 158, 11, 0.1);
+            transform: translateY(-3px);
+            color: #f59e0b;
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 3.5rem;
+            }
+
+            .error-title {
+                font-size: 1.5rem;
+            }
+
+            .error-icon {
+                font-size: 5rem;
+            }
+
+            .error-description {
+                font-size: 1rem;
+            }
+
+            .button-group-error {
+                flex-direction: column;
+            }
+
+            .btn-error {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .error-header {
+                margin-bottom: 1.5rem;
+            }
+
+            .error-brand h2 {
+                font-size: 1.1rem;
+            }
+
+            .logo-icon-error {
+                width: 45px;
+                height: 45px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Elementos de fondo -->
+    <div class="background-element bg-element-1"></div>
+    <div class="background-element bg-element-2"></div>
+    <div class="background-element bg-element-3"></div>
+
+    <!-- Contenedor del error -->
+    <div class="error-wrapper">
+        <div class="error-container">
+            
+            <!-- Header con logo -->
+            <div class="error-header">
+                <div class="logo-icon-error">
+                    <i class="bi bi-bus-front"></i>
+                </div>
+                <div class="error-brand">
+                    <h2>RutaEscolar</h2>
+                    <p>Sistema de Gestión</p>
+                </div>
+            </div>
+
+            <!-- Icono del error -->
+            <div class="error-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+
+            <!-- Código de error -->
+            <h1 class="error-code">404</h1>
+
+            <!-- Título -->
+            <h2 class="error-title">¡Oops! Ruta No Encontrada</h2>
+
+            <!-- Descripción -->
+            <p class="error-description">
+                Parece que este autobús tomó un camino equivocado. La página que buscas no existe o ha sido movida a otra dirección.
+            </p>
+
+            <!-- Caja de información -->
+            <div class="info-box-error">
+                <i class="bi bi-info-circle"></i>
+                <h4>¿Qué pasó?</h4>
+                <p>La URL que intentaste acceder no está disponible en nuestro sistema de gestión.</p>
+            </div>
+
+            <!-- Botones -->
+            <div class="button-group-error">
+                <a href="/home" class="btn-error btn-error-primary">
+                    <i class="bi bi-house-fill"></i>
+                    Ir al Inicio
+                </a>
+                <a href="/dashboard" class="btn-error btn-error-secondary">
+                    <i class="bi bi-grid-fill"></i>
+                    Ir al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
